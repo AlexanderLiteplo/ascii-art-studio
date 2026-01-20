@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASCII Art Converter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #00ff00;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #00ff00;
+            font-size: 2em;
+            text-shadow: 0 0 10px #00ff00;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #00aa00;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .upload-area {
+            background: #1a1a1a;
+            border: 2px dashed #00ff00;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-area:hover {
+            background: #2a2a2a;
+            border-color: #00ff88;
+        }
+
+        .upload-area.dragover {
+            background: #2a4a2a;
+            border-color: #00ff88;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .controls {
+            background: #1a1a1a;
+            border: 1px solid #00ff00;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #00ff00;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: #333;
+            outline: none;
+            border-radius: 3px;
+        }
+
+        .value-display {
+            display: inline-block;
+            background: #0a3a0a;
+            padding: 4px 12px;
+            border-radius: 4px;
+            margin-left: 10px;
+            color: #00ff00;
+            border: 1px solid #00aa00;
+        }
+
+        #output {
+            background: #000;
+            border: 1px solid #00ff00;
+            border-radius: 8px;
+            padding: 10px;
+            overflow: auto;
+            font-family: 'Courier New', monospace;
+            line-height: 1;
+            font-size: 6px;
+            color: #00ff00;
+            white-space: pre;
+            max-height: 80vh;
+        }
+
+        #canvas {
+            display: none;
+        }
+
+        .info {
+            text-align: center;
+            color: #00aa00;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            flex: 1;
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #00cc00;
+            box-shadow: 0 0 20px #00ff00;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        #videoPreview {
+            display: none;
+            max-width: 100%;
+            margin-bottom: 20px;
+            border: 1px solid #00ff00;
+            border-radius: 8px;
+        }
+
+        .export-section {
+            background: #1a1a1a;
+            border: 1px solid #00ff00;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .export-section h3 {
+            color: #00ff00;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .animation-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .animation-option {
+            background: #0a3a0a;
+            border: 2px solid #00aa00;
+            border-radius: 6px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .animation-option:hover {
+            background: #0a5a0a;
+            border-color: #00ff00;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+        }
+
+        .animation-option.selected {
+            background: #0a5a0a;
+            border-color: #00ff00;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+        }
+
+        .animation-option h4 {
+            color: #00ff00;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .animation-option p {
+            color: #00aa00;
+            font-size: 11px;
+        }
+
+        .color-picker-section {
+            margin-bottom: 20px;
+        }
+
+        .hsv-sphere-container {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        #hsvSphere {
+            border: 1px solid #00ff00;
+            border-radius: 8px;
+            cursor: crosshair;
+        }
+
+        .color-presets {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 8px;
+        }
+
+        .color-preset {
+            width: 100%;
+            height: 40px;
+            border: 2px solid #333;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .color-preset:hover {
+            border-color: #00ff00;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+        }
+
+        .color-preset.selected {
+            border-color: #00ff00;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.7);
+        }
+
+        .export-status {
+            background: #0a3a0a;
+            border: 1px solid #00aa00;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 15px;
+            text-align: center;
+            color: #00ff00;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00aa00, #00ff00);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .auto-gif-gallery {
+            background: #1a1a1a;
+            border: 1px solid #00ff00;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .auto-gif-gallery h3 {
+            color: #00ff00;
+            margin-bottom: 15px;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        .gif-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .gif-item {
+            background: #0a0a0a;
+            border: 2px solid #00aa00;
+            border-radius: 6px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .gif-item.generating {
+            border-color: #ffaa00;
+            animation: pulse 1.5s infinite;
+        }
+
+        .gif-item.complete {
+            border-color: #00ff00;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .gif-item h4 {
+            color: #00ff00;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .gif-preview {
+            width: 100%;
+            max-width: 300px;
+            height: auto;
+            border: 1px solid #333;
+            border-radius: 4px;
+            background: #000;
+            margin: 10px auto;
+            display: block;
+        }
+
+        .gif-status {
+            color: #00aa00;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .gif-download-btn {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            margin-top: 10px;
+            transition: all 0.3s;
+            display: none;
+        }
+
+        .gif-download-btn:hover {
+            background: #00cc00;
+            box-shadow: 0 0 10px #00ff00;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ASCII ART CONVERTER</h1>
+        <p class="subtitle">Upload an image or video and watch it transform into ASCII art</p>
+
+        <div class="upload-area" id="uploadArea">
+            <p style="font-size: 48px; margin-bottom: 10px;">+</p>
+            <p>Click or drag image/video here</p>
+            <p style="font-size: 12px; color: #00aa00; margin-top: 10px;">Supports: JPG, PNG, GIF, MP4, WEBM</p>
+        </div>
+
+        <input type="file" id="fileInput" accept="image/*,video/*">
+
+        <div class="button-group">
+            <button id="pauseBtn" style="display: none;">Pause</button>
+            <button id="downloadBtn" style="display: none;">Download ASCII</button>
+        </div>
+
+        <div class="auto-gif-gallery" id="autoGifGallery">
+            <h3>🎬 Auto-Generated GIF Variations</h3>
+            <div class="gif-grid" id="gifGrid">
+                <div class="gif-item" id="gifDetail">
+                    <h4>Detail Sweep</h4>
+                    <div class="gif-status" id="statusDetail">Waiting...</div>
+                    <img class="gif-preview" id="previewDetail" style="display: none;">
+                    <button class="gif-download-btn" id="downloadDetail">Download</button>
+                </div>
+                <div class="gif-item" id="gifBrightness">
+                    <h4>Brightness Pulse</h4>
+                    <div class="gif-status" id="statusBrightness">Waiting...</div>
+                    <img class="gif-preview" id="previewBrightness" style="display: none;">
+                    <button class="gif-download-btn" id="downloadBrightness">Download</button>
+                </div>
+                <div class="gif-item" id="gifContrast">
+                    <h4>Contrast Wave</h4>
+                    <div class="gif-status" id="statusContrast">Waiting...</div>
+                    <img class="gif-preview" id="previewContrast" style="display: none;">
+                    <button class="gif-download-btn" id="downloadContrast">Download</button>
+                </div>
+                <div class="gif-item" id="gifRainbow">
+                    <h4>Rainbow Cycle</h4>
+                    <div class="gif-status" id="statusRainbow">Waiting...</div>
+                    <img class="gif-preview" id="previewRainbow" style="display: none;">
+                    <button class="gif-download-btn" id="downloadRainbow">Download</button>
+                </div>
+                <div class="gif-item" id="gifCombo">
+                    <h4>Combo Effect</h4>
+                    <div class="gif-status" id="statusCombo">Waiting...</div>
+                    <img class="gif-preview" id="previewCombo" style="display: none;">
+                    <button class="gif-download-btn" id="downloadCombo">Download</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="export-section">
+            <h3>🎬 Export Animated GIF</h3>
+
+            <div class="color-picker-section">
+                <label style="margin-bottom: 10px; display: block;">Choose ASCII Color:</label>
+                <div class="hsv-sphere-container">
+                    <canvas id="hsvSphere" width="300" height="300"></canvas>
+                    <div style="flex: 1; min-width: 200px;">
+                        <label style="margin-bottom: 10px; display: block;">Quick Presets:</label>
+                        <div class="color-presets" id="colorPresets"></div>
+                    </div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <label>Current Color: <span class="value-display" id="currentColorValue" style="display: inline-block; width: 100px; text-align: center;">#00ff00</span></label>
+                </div>
+            </div>
+
+            <label style="display: block; margin-bottom: 10px;">Select Animation Type:</label>
+            <div class="animation-options">
+                <div class="animation-option" data-animation="detail">
+                    <h4>Detail Sweep</h4>
+                    <p>Animates detail slider from low to high and back</p>
+                </div>
+                <div class="animation-option" data-animation="brightness">
+                    <h4>Brightness Pulse</h4>
+                    <p>Pulses brightness from dark to bright</p>
+                </div>
+                <div class="animation-option" data-animation="contrast">
+                    <h4>Contrast Wave</h4>
+                    <p>Waves contrast for dramatic effect</p>
+                </div>
+                <div class="animation-option" data-animation="rainbow">
+                    <h4>Rainbow Cycle</h4>
+                    <p>Cycles through rainbow colors</p>
+                </div>
+                <div class="animation-option" data-animation="combo">
+                    <h4>Combo Effect</h4>
+                    <p>Combines detail + brightness animation</p>
+                </div>
+            </div>
+
+            <button id="exportGifBtn" style="background: #ff00ff; width: 100%;">Export GIF</button>
+
+            <div class="export-status" id="exportStatus">
+                <div id="statusText">Preparing export...</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>
+                    Detail Level (ASCII resolution): <span class="value-display" id="detailValue">10</span>
+                </label>
+                <input type="range" id="detailSlider" min="1" max="270" value="10" step="1">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    Brightness: <span class="value-display" id="brightnessValue">1.0</span>
+                </label>
+                <input type="range" id="brightnessSlider" min="0.5" max="2" value="1.0" step="0.1">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    Contrast: <span class="value-display" id="contrastValue">1.0</span>
+                </label>
+                <input type="range" id="contrastSlider" min="0.5" max="2" value="1.0" step="0.1">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    Character Set: <span class="value-display" id="charsetValue">Detailed</span>
+                </label>
+                <input type="range" id="charsetSlider" min="0" max="3" value="0" step="1">
+            </div>
+        </div>
+
+        <video id="videoPreview" loop muted></video>
+        <canvas id="canvas"></canvas>
+        <div id="output"></div>
+        <div class="info" id="info">Ready to convert!</div>
+    </div>
+
+    <script src="https://unpkg.com/gifenc@1.0.3/dist/gifenc.min.js"></script>
+    <script>
+        // Ensure gifenc is loaded
+        if (typeof window.gifenc === 'undefined') {
+            console.error('gifenc library failed to load');
+        }
+    </script>
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const output = document.getElementById('output');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const info = document.getElementById('info');
+        const videoPreview = document.getElementById('videoPreview');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const exportGifBtn = document.getElementById('exportGifBtn');
+        const exportStatus = document.getElementById('exportStatus');
+        const statusText = document.getElementById('statusText');
+        const progressFill = document.getElementById('progressFill');
+        const hsvSphere = document.getElementById('hsvSphere');
+        const hsvCtx = hsvSphere.getContext('2d');
+        const colorPresets = document.getElementById('colorPresets');
+        const currentColorValue = document.getElementById('currentColorValue');
+
+        // ASCII character sets from darkest to brightest
+        const charSets = [
+            " .:-=+*#%@",  // Detailed
+            " .'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$",  // Ultra detailed
+            " .,-~:;=!*#$@",  // Simple
+            " ░▒▓█"  // Blocks
+        ];
+
+
+        let currentCharSet = 0;
+        let settings = {
+            baseWidth: 120, // Base width for detail level 10
+            brightness: 1.0,
+            contrast: 1.0,
+            detail: 10
+        };
+        let isVideo = false;
+        let isPaused = false;
+        let currentSource = null;
+        let animationId = null;
+        let selectedAnimation = null;
+        let currentColor = '#00ff00';
+        let generatedGifs = {}; // Store generated GIF blobs
+
+        // Character set names
+        const charsetNames = ['Detailed', 'Ultra Detailed', 'Simple', 'Blocks'];
+
+        // Update slider displays
+        document.getElementById('detailSlider').addEventListener('input', (e) => {
+            settings.detail = parseInt(e.target.value);
+            document.getElementById('detailValue').textContent = settings.detail;
+            if (currentSource && !isVideo) convertToAscii(currentSource);
+        });
+
+        document.getElementById('brightnessSlider').addEventListener('input', (e) => {
+            settings.brightness = parseFloat(e.target.value);
+            document.getElementById('brightnessValue').textContent = settings.brightness.toFixed(1);
+            if (currentSource && !isVideo) convertToAscii(currentSource);
+        });
+
+        document.getElementById('contrastSlider').addEventListener('input', (e) => {
+            settings.contrast = parseFloat(e.target.value);
+            document.getElementById('contrastValue').textContent = settings.contrast.toFixed(1);
+            if (currentSource && !isVideo) convertToAscii(currentSource);
+        });
+
+        document.getElementById('charsetSlider').addEventListener('input', (e) => {
+            currentCharSet = parseInt(e.target.value);
+            document.getElementById('charsetValue').textContent = charsetNames[currentCharSet];
+            if (currentSource && !isVideo) convertToAscii(currentSource);
+        });
+
+        // Upload area interactions
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        pauseBtn.addEventListener('click', () => {
+            isPaused = !isPaused;
+            pauseBtn.textContent = isPaused ? 'Resume' : 'Pause';
+            if (!isPaused && isVideo) {
+                videoPreview.play();
+                renderVideoFrame();
+            } else if (isPaused && isVideo) {
+                videoPreview.pause();
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                }
+            }
+        });
+
+        downloadBtn.addEventListener('click', () => {
+            const text = output.textContent;
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'ascii-art.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        function handleFile(file) {
+            const fileType = file.type.split('/')[0];
+
+            if (fileType === 'image') {
+                isVideo = false;
+                pauseBtn.style.display = 'none';
+                downloadBtn.style.display = 'block';
+                videoPreview.style.display = 'none';
+
+                const img = new Image();
+                img.onload = () => {
+                    currentSource = img;
+                    convertToAscii(img);
+                    info.textContent = `Converted: ${file.name}`;
+
+                    // Auto-generate all GIF variations in parallel
+                    autoGenerateAllGifs();
+                };
+                img.src = URL.createObjectURL(file);
+            } else if (fileType === 'video') {
+                isVideo = true;
+                pauseBtn.style.display = 'block';
+                downloadBtn.style.display = 'none';
+                videoPreview.style.display = 'block';
+
+                videoPreview.src = URL.createObjectURL(file);
+                videoPreview.onloadedmetadata = () => {
+                    currentSource = videoPreview;
+                    videoPreview.play();
+                    renderVideoFrame();
+                    info.textContent = `Playing: ${file.name}`;
+                };
+            }
+        }
+
+        function renderVideoFrame() {
+            if (!isPaused && isVideo && currentSource) {
+                convertToAscii(currentSource);
+                animationId = requestAnimationFrame(renderVideoFrame);
+            }
+        }
+
+        function convertToAscii(source) {
+            // Calculate dimensions based on detail level
+            // Detail level directly controls number of ASCII characters
+            // Higher detail = more characters = finer grain
+            const aspectRatio = source.videoHeight ? source.videoHeight / source.videoWidth : source.height / source.width;
+            const width = settings.detail * 10; // detail 1 = 10 chars, detail 30 = 300 chars
+            const height = Math.floor(width * aspectRatio * 0.5); // 0.5 because chars are taller than wide
+
+            // Set canvas size
+            canvas.width = width;
+            canvas.height = height;
+
+            // Draw source to canvas
+            ctx.drawImage(source, 0, 0, width, height);
+
+            // Get image data
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const pixels = imageData.data;
+
+            let ascii = '';
+            // Use full character set (no filtering based on detail level)
+            const chars = charSets[currentCharSet];
+
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const i = (y * width + x) * 4;
+
+                    // Get RGB values
+                    let r = pixels[i];
+                    let g = pixels[i + 1];
+                    let b = pixels[i + 2];
+
+                    // Apply brightness
+                    r = Math.min(255, r * settings.brightness);
+                    g = Math.min(255, g * settings.brightness);
+                    b = Math.min(255, b * settings.brightness);
+
+                    // Apply contrast
+                    r = Math.min(255, Math.max(0, ((r / 255 - 0.5) * settings.contrast + 0.5) * 255));
+                    g = Math.min(255, Math.max(0, ((g / 255 - 0.5) * settings.contrast + 0.5) * 255));
+                    b = Math.min(255, Math.max(0, ((b / 255 - 0.5) * settings.contrast + 0.5) * 255));
+
+                    // Calculate brightness (luminance)
+                    const brightness = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+                    // Map brightness to character
+                    const charIndex = Math.floor(brightness * (chars.length - 1));
+                    ascii += chars[charIndex];
+                }
+                ascii += '\n';
+            }
+
+            output.textContent = ascii;
+
+            // Adjust font size based on detail level for better visual appearance
+            // Higher detail = smaller font to fit more characters
+            const fontSize = Math.max(2, Math.min(10, 120 / settings.detail));
+            output.style.fontSize = fontSize + 'px';
+        }
+
+        // HSV to RGB conversion
+        function hsvToRgb(h, s, v) {
+            let r, g, b;
+            const i = Math.floor(h * 6);
+            const f = h * 6 - i;
+            const p = v * (1 - s);
+            const q = v * (1 - f * s);
+            const t = v * (1 - (1 - f) * s);
+            switch (i % 6) {
+                case 0: r = v; g = t; b = p; break;
+                case 1: r = q; g = v; b = p; break;
+                case 2: r = p; g = v; b = t; break;
+                case 3: r = p; g = q; b = v; break;
+                case 4: r = t; g = p; b = v; break;
+                case 5: r = v; g = p; b = q; break;
+            }
+            return {
+                r: Math.round(r * 255),
+                g: Math.round(g * 255),
+                b: Math.round(b * 255)
+            };
+        }
+
+        function rgbToHex(r, g, b) {
+            return '#' + [r, g, b].map(x => {
+                const hex = x.toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            }).join('');
+        }
+
+        // Draw HSV sphere (actually a 2D HSV picker)
+        function drawHSVSphere() {
+            const size = 300;
+            const centerX = size / 2;
+            const centerY = size / 2;
+            const radius = size / 2 - 10;
+
+            for (let y = 0; y < size; y++) {
+                for (let x = 0; x < size; x++) {
+                    const dx = x - centerX;
+                    const dy = y - centerY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance <= radius) {
+                        const angle = Math.atan2(dy, dx);
+                        const hue = (angle + Math.PI) / (2 * Math.PI);
+                        const saturation = distance / radius;
+                        const value = 1.0;
+
+                        const rgb = hsvToRgb(hue, saturation, value);
+                        hsvCtx.fillStyle = rgbToHex(rgb.r, rgb.g, rgb.b);
+                        hsvCtx.fillRect(x, y, 1, 1);
+                    }
+                }
+            }
+        }
+
+        // Handle HSV sphere click
+        hsvSphere.addEventListener('click', (e) => {
+            const rect = hsvSphere.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const centerX = 150;
+            const centerY = 150;
+            const dx = x - centerX;
+            const dy = y - centerY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const radius = 140;
+
+            if (distance <= radius) {
+                const angle = Math.atan2(dy, dx);
+                const hue = (angle + Math.PI) / (2 * Math.PI);
+                const saturation = distance / radius;
+                const value = 1.0;
+
+                const rgb = hsvToRgb(hue, saturation, value);
+                currentColor = rgbToHex(rgb.r, rgb.g, rgb.b);
+                currentColorValue.textContent = currentColor;
+                currentColorValue.style.color = currentColor;
+                output.style.color = currentColor;
+
+                // Update selected preset
+                document.querySelectorAll('.color-preset').forEach(p => p.classList.remove('selected'));
+            }
+        });
+
+        // Color presets
+        const presetColors = [
+            { name: 'Matrix Green', color: '#00ff00' },
+            { name: 'Cyan', color: '#00ffff' },
+            { name: 'Magenta', color: '#ff00ff' },
+            { name: 'Yellow', color: '#ffff00' },
+            { name: 'Red', color: '#ff0000' },
+            { name: 'Blue', color: '#0066ff' },
+            { name: 'Purple', color: '#9933ff' },
+            { name: 'Orange', color: '#ff6600' },
+            { name: 'Pink', color: '#ff66cc' },
+            { name: 'Lime', color: '#ccff00' },
+            { name: 'Aqua', color: '#00ffcc' },
+            { name: 'White', color: '#ffffff' }
+        ];
+
+        presetColors.forEach((preset, idx) => {
+            const div = document.createElement('div');
+            div.className = 'color-preset';
+            div.style.backgroundColor = preset.color;
+            div.title = preset.name;
+            if (preset.color === currentColor) {
+                div.classList.add('selected');
+            }
+            div.addEventListener('click', () => {
+                currentColor = preset.color;
+                currentColorValue.textContent = currentColor;
+                currentColorValue.style.color = currentColor;
+                output.style.color = currentColor;
+                document.querySelectorAll('.color-preset').forEach(p => p.classList.remove('selected'));
+                div.classList.add('selected');
+            });
+            colorPresets.appendChild(div);
+        });
+
+        // Animation selection
+        document.querySelectorAll('.animation-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.animation-option').forEach(o => o.classList.remove('selected'));
+                option.classList.add('selected');
+                selectedAnimation = option.dataset.animation;
+            });
+        });
+
+        // Export GIF functionality
+        exportGifBtn.addEventListener('click', async () => {
+            if (!currentSource) {
+                alert('Please upload an image or video first!');
+                return;
+            }
+            if (!selectedAnimation) {
+                alert('Please select an animation type!');
+                return;
+            }
+
+            exportStatus.style.display = 'block';
+            statusText.textContent = 'Initializing GIF encoder...';
+            progressFill.style.width = '0%';
+
+            const frames = 30;
+            const originalSettings = { ...settings };
+            const originalColor = output.style.color;
+            const frameData = [];
+
+            for (let i = 0; i < frames; i++) {
+                const progress = i / frames;
+                statusText.textContent = `Rendering frame ${i + 1}/${frames}...`;
+                progressFill.style.width = `${(progress * 80)}%`;
+
+                // Apply animation based on type
+                switch (selectedAnimation) {
+                    case 'detail':
+                        const detailProgress = Math.sin(progress * Math.PI * 2);
+                        settings.detail = Math.floor(135 + detailProgress * 134); // sweeps through 1-269 detail range
+                        break;
+                    case 'brightness':
+                        const brightnessProgress = Math.sin(progress * Math.PI * 2);
+                        settings.brightness = 0.5 + (brightnessProgress + 1) * 0.75; // 0.5-2.0
+                        break;
+                    case 'contrast':
+                        const contrastProgress = Math.sin(progress * Math.PI * 2);
+                        settings.contrast = 0.5 + (contrastProgress + 1) * 0.75; // 0.5-2.0
+                        break;
+                    case 'rainbow':
+                        const hue = progress;
+                        const rgb = hsvToRgb(hue, 1.0, 1.0);
+                        output.style.color = rgbToHex(rgb.r, rgb.g, rgb.b);
+                        break;
+                    case 'combo':
+                        const comboProgress = Math.sin(progress * Math.PI * 2);
+                        settings.detail = Math.floor(135 + comboProgress * 134);
+                        settings.brightness = 0.8 + (comboProgress + 1) * 0.4;
+                        break;
+                }
+
+                // Render ASCII
+                convertToAscii(currentSource);
+
+                // Wait for render
+                await new Promise(resolve => setTimeout(resolve, 50));
+
+                // Capture frame
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = 800;
+                tempCanvas.height = 600;
+                const tempCtx = tempCanvas.getContext('2d');
+
+                // Set background
+                tempCtx.fillStyle = '#000000';
+                tempCtx.fillRect(0, 0, 800, 600);
+
+                // Set text color
+                tempCtx.fillStyle = output.style.color;
+                tempCtx.font = '8px Courier New';
+
+                // Draw ASCII text
+                const lines = output.textContent.split('\n');
+                const lineHeight = 8;
+                const startY = (600 - lines.length * lineHeight) / 2;
+
+                lines.forEach((line, idx) => {
+                    const textWidth = tempCtx.measureText(line).width;
+                    const startX = (800 - textWidth) / 2;
+                    tempCtx.fillText(line, startX, startY + idx * lineHeight);
+                });
+
+                frameData.push(tempCtx.getImageData(0, 0, 800, 600));
+            }
+
+            // Restore original settings
+            settings = { ...originalSettings };
+            output.style.color = currentColor;
+            convertToAscii(currentSource);
+
+            statusText.textContent = 'Encoding GIF...';
+            progressFill.style.width = '90%';
+
+            // Use gifenc to encode
+            const { quantize, applyPalette, GIFEncoder } = window.gifenc;
+            const gif = GIFEncoder();
+
+            frameData.forEach((imageData, i) => {
+                const palette = quantize(imageData.data, 256);
+                const index = applyPalette(imageData.data, palette);
+                gif.writeFrame(index, 800, 600, { palette, delay: 10 });
+                progressFill.style.width = `${90 + (i / frameData.length) * 10}%`;
+            });
+            gif.finish();
+
+            statusText.textContent = 'Download starting...';
+            progressFill.style.width = '100%';
+
+            const buffer = gif.bytes();
+            const blob = new Blob([buffer], { type: 'image/gif' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ascii-${selectedAnimation}-${Date.now()}.gif`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            setTimeout(() => {
+                exportStatus.style.display = 'none';
+                statusText.textContent = 'Complete!';
+            }, 2000);
+        });
+
+        // Auto-generate all GIF variations in parallel
+        async function autoGenerateAllGifs() {
+            if (!currentSource) return;
+
+            // Show the gallery
+            document.getElementById('autoGifGallery').style.display = 'block';
+
+            // Reset all items
+            const animations = ['detail', 'brightness', 'contrast', 'rainbow', 'combo'];
+            animations.forEach(anim => {
+                const item = document.getElementById(`gif${anim.charAt(0).toUpperCase() + anim.slice(1)}`);
+                item.className = 'gif-item generating';
+                document.getElementById(`status${anim.charAt(0).toUpperCase() + anim.slice(1)}`).textContent = 'Generating...';
+                document.getElementById(`preview${anim.charAt(0).toUpperCase() + anim.slice(1)}`).style.display = 'none';
+                document.getElementById(`download${anim.charAt(0).toUpperCase() + anim.slice(1)}`).style.display = 'none';
+            });
+
+            // Generate all GIFs in parallel
+            const gifPromises = animations.map(animType => generateSingleGif(animType));
+            await Promise.all(gifPromises);
+
+            info.textContent = 'All GIF variations generated! 🎉';
+        }
+
+        async function generateSingleGif(animationType) {
+            const animNameCap = animationType.charAt(0).toUpperCase() + animationType.slice(1);
+            const statusEl = document.getElementById(`status${animNameCap}`);
+            const previewEl = document.getElementById(`preview${animNameCap}`);
+            const downloadBtn = document.getElementById(`download${animNameCap}`);
+            const itemEl = document.getElementById(`gif${animNameCap}`);
+
+            try {
+                const frames = 30;
+                const originalSettings = { ...settings };
+                const originalColor = output.style.color;
+                const frameData = [];
+
+                for (let i = 0; i < frames; i++) {
+                    const progress = i / frames;
+                    statusEl.textContent = `Frame ${i + 1}/${frames}`;
+
+                    // Apply animation based on type
+                    switch (animationType) {
+                        case 'detail':
+                            const detailProgress = Math.sin(progress * Math.PI * 2);
+                            settings.detail = Math.floor(135 + detailProgress * 134);
+                            break;
+                        case 'brightness':
+                            const brightnessProgress = Math.sin(progress * Math.PI * 2);
+                            settings.brightness = 0.5 + (brightnessProgress + 1) * 0.75;
+                            break;
+                        case 'contrast':
+                            const contrastProgress = Math.sin(progress * Math.PI * 2);
+                            settings.contrast = 0.5 + (contrastProgress + 1) * 0.75;
+                            break;
+                        case 'rainbow':
+                            const hue = progress;
+                            const rgb = hsvToRgb(hue, 1.0, 1.0);
+                            output.style.color = rgbToHex(rgb.r, rgb.g, rgb.b);
+                            break;
+                        case 'combo':
+                            const comboProgress = Math.sin(progress * Math.PI * 2);
+                            settings.detail = Math.floor(135 + comboProgress * 134);
+                            settings.brightness = 0.8 + (comboProgress + 1) * 0.4;
+                            break;
+                    }
+
+                    // Render ASCII
+                    convertToAscii(currentSource);
+
+                    // Wait for render
+                    await new Promise(resolve => setTimeout(resolve, 30));
+
+                    // Capture frame
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = 800;
+                    tempCanvas.height = 600;
+                    const tempCtx = tempCanvas.getContext('2d');
+
+                    // Set background
+                    tempCtx.fillStyle = '#000000';
+                    tempCtx.fillRect(0, 0, 800, 600);
+
+                    // Set text color
+                    tempCtx.fillStyle = output.style.color;
+                    tempCtx.font = '8px Courier New';
+
+                    // Draw ASCII text
+                    const lines = output.textContent.split('\n');
+                    const lineHeight = 8;
+                    const startY = (600 - lines.length * lineHeight) / 2;
+
+                    lines.forEach((line, idx) => {
+                        const textWidth = tempCtx.measureText(line).width;
+                        const startX = (800 - textWidth) / 2;
+                        tempCtx.fillText(line, startX, startY + idx * lineHeight);
+                    });
+
+                    frameData.push(tempCtx.getImageData(0, 0, 800, 600));
+                }
+
+                // Restore original settings
+                settings = { ...originalSettings };
+                output.style.color = currentColor;
+                convertToAscii(currentSource);
+
+                statusEl.textContent = 'Encoding...';
+
+                // Use gifenc to encode
+                const { quantize, applyPalette, GIFEncoder } = window.gifenc;
+                const gif = GIFEncoder();
+
+                frameData.forEach((imageData) => {
+                    const palette = quantize(imageData.data, 256);
+                    const index = applyPalette(imageData.data, palette);
+                    gif.writeFrame(index, 800, 600, { palette, delay: 10 });
+                });
+                gif.finish();
+
+                const buffer = gif.bytes();
+                const blob = new Blob([buffer], { type: 'image/gif' });
+
+                // Store the blob
+                generatedGifs[animationType] = blob;
+
+                // Show preview
+                const url = URL.createObjectURL(blob);
+                previewEl.src = url;
+                previewEl.style.display = 'block';
+
+                // Update status
+                statusEl.textContent = 'Complete! ✓';
+                itemEl.className = 'gif-item complete';
+
+                // Show download button
+                downloadBtn.style.display = 'inline-block';
+                downloadBtn.onclick = () => {
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `ascii-${animationType}-${Date.now()}.gif`;
+                    a.click();
+                };
+            } catch (error) {
+                statusEl.textContent = 'Error!';
+                itemEl.className = 'gif-item';
+                console.error(`Error generating ${animationType} GIF:`, error);
+            }
+        }
+
+        // Initialize HSV sphere
+        drawHSVSphere();
+    </script>
+</body>
+</html>

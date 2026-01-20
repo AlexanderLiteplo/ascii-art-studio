@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGPU ASCII Art & Dithering Processor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #00ff88;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .canvas-container {
+            background: #000;
+            border: 2px solid #333;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 480px;
+        }
+
+        canvas {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .controls {
+            background: #2a2a2a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #00ff88;
+            font-weight: 600;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: #444;
+            outline: none;
+            border-radius: 3px;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #00ff88;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: #00ff88;
+            cursor: pointer;
+            border-radius: 50%;
+            border: none;
+        }
+
+        .value-display {
+            display: inline-block;
+            background: #333;
+            padding: 4px 12px;
+            border-radius: 4px;
+            margin-left: 10px;
+            font-family: monospace;
+            color: #00ff88;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background: #00ff88;
+            color: #1a1a1a;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #00cc6a;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .info {
+            background: #2a2a2a;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 13px;
+            color: #888;
+        }
+
+        .info.error {
+            background: #ff3333;
+            color: #fff;
+        }
+
+        .fps-counter {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            color: #00ff88;
+            border: 1px solid #00ff88;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            background: #333;
+            color: #fff;
+        }
+
+        .mode-btn.active {
+            background: #00ff88;
+            color: #1a1a1a;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 WebGPU ASCII Art & Dithering Processor</h1>
+        <p class="subtitle">Real-time 60fps video and image effects - No external libraries</p>
+
+        <div class="fps-counter" id="fpsCounter">FPS: 0</div>
+
+        <div class="button-group">
+            <button id="loadImageBtn">Load Image</button>
+            <button id="loadVideoBtn">Load Video</button>
+            <button id="startWebcamBtn">Start Webcam</button>
+            <button id="stopBtn" disabled>Stop</button>
+        </div>
+
+        <input type="file" id="imageInput" accept="image/*">
+        <input type="file" id="videoInput" accept="video/*">
+
+        <div class="mode-selector">
+            <button class="mode-btn active" id="asciiMode">ASCII Art</button>
+            <button class="mode-btn" id="ditherMode">Dithering</button>
+            <button class="mode-btn" id="combinedMode">Combined</button>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="renderCanvas"></canvas>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>
+                    ASCII Character Density: <span class="value-display" id="asciiDensityValue">16</span>
+                </label>
+                <input type="range" id="asciiDensity" min="4" max="64" value="16" step="1">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    ASCII Character Size: <span class="value-display" id="charSizeValue">8</span>
+                </label>
+                <input type="range" id="charSize" min="4" max="32" value="8" step="1">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    Dither Intensity: <span class="value-display" id="ditherIntensityValue">0.5</span>
+                </label>
+                <input type="range" id="ditherIntensity" min="0" max="1" value="0.5" step="0.01">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    Dither Matrix Size: <span class="value-display" id="ditherSizeValue">4</span>
+                </label>
+                <input type="range" id="ditherSize" min="2" max="8" value="4" step="1">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    Brightness: <span class="value-display" id="brightnessValue">1.0</span>
+                </label>
+                <input type="range" id="brightness" min="0.1" max="2" value="1.0" step="0.1">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    Contrast: <span class="value-display" id="contrastValue">1.0</span>
+                </label>
+                <input type="range" id="contrast" min="0.5" max="2" value="1.0" step="0.1">
+            </div>
+        </div>
+
+        <div class="info" id="infoBox">
+            WebGPU support detected. Load an image, video, or start your webcam to begin processing.
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>
