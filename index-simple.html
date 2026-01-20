@@ -969,12 +969,11 @@
             progressFill.style.width = '90%';
 
             // Use gifenc to encode
-            const { quantize, applyPalette, GIFEncoder } = window.gifenc;
-            const gif = GIFEncoder();
+            const gif = window.gifenc.GIFEncoder();
 
             frameData.forEach((imageData, i) => {
-                const palette = quantize(imageData.data, 256);
-                const index = applyPalette(imageData.data, palette);
+                const palette = window.gifenc.quantize(imageData.data, 256);
+                const index = window.gifenc.applyPalette(imageData.data, palette);
                 gif.writeFrame(index, 800, 600, { palette, delay: 10 });
                 progressFill.style.width = `${90 + (i / frameData.length) * 10}%`;
             });
@@ -1107,12 +1106,11 @@
                 statusEl.textContent = 'Encoding...';
 
                 // Use gifenc to encode
-                const { quantize, applyPalette, GIFEncoder } = window.gifenc;
-                const gif = GIFEncoder();
+                const gif = window.gifenc.GIFEncoder();
 
                 frameData.forEach((imageData) => {
-                    const palette = quantize(imageData.data, 256);
-                    const index = applyPalette(imageData.data, palette);
+                    const palette = window.gifenc.quantize(imageData.data, 256);
+                    const index = window.gifenc.applyPalette(imageData.data, palette);
                     gif.writeFrame(index, 800, 600, { palette, delay: 10 });
                 });
                 gif.finish();

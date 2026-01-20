@@ -1,0 +1,4 @@
+project_id   = "your-gcp-project-id"
+bucket_name  = "ascii-art-studio-web"
+region       = "us-central1"
+website_name = "ascii-art-studio"

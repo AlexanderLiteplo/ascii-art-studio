@@ -1,0 +1,49 @@
+name: Deploy to Google Cloud
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GCP_REGION: us-central1
+  BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
+
+jobs:
+  deploy:
+    name: Deploy to GCP
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Upload files to GCS
+        run: |
+          gsutil -m cp -r index-simple.html gs://${BUCKET_NAME}/
+          gsutil -m cp -r index.html gs://${BUCKET_NAME}/
+          gsutil -m cp -r main.js gs://${BUCKET_NAME}/
+          gsutil -m cp -r README.md gs://${BUCKET_NAME}/
+
+      - name: Set public access
+        run: |
+          gsutil -m acl ch -u AllUsers:R gs://${BUCKET_NAME}/*
+          gsutil web set -m index-simple.html -e index-simple.html gs://${BUCKET_NAME}
+
+      - name: Get website URL
+        run: |
+          echo "Website deployed!"
+          echo "URL: https://storage.googleapis.com/${BUCKET_NAME}/index-simple.html"
