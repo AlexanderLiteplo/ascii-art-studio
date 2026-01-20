@@ -514,12 +514,14 @@
         <div class="info" id="info">Ready to convert!</div>
     </div>
 
-    <script src="https://unpkg.com/gifenc@1.0.3/dist/gifenc.min.js"></script>
-    <script>
-        // Ensure gifenc is loaded
-        if (typeof window.gifenc === 'undefined') {
-            console.error('gifenc library failed to load');
-        }
+    <script type="module">
+        // Import gifenc as ES module
+        import { GIFEncoder, quantize, applyPalette } from 'https://unpkg.com/gifenc@1.0.3/dist/gifenc.esm.js';
+
+        // Make available globally for use in the main script
+        window.GIFEncoder = GIFEncoder;
+        window.quantize = quantize;
+        window.applyPalette = applyPalette;
     </script>
     <script>
         const uploadArea = document.getElementById('uploadArea');
@@ -969,11 +971,11 @@
             progressFill.style.width = '90%';
 
             // Use gifenc to encode
-            const gif = window.gifenc.GIFEncoder();
+            const gif = window.GIFEncoder();
 
             frameData.forEach((imageData, i) => {
-                const palette = window.gifenc.quantize(imageData.data, 256);
-                const index = window.gifenc.applyPalette(imageData.data, palette);
+                const palette = window.quantize(imageData.data, 256);
+                const index = window.applyPalette(imageData.data, palette);
                 gif.writeFrame(index, 800, 600, { palette, delay: 10 });
                 progressFill.style.width = `${90 + (i / frameData.length) * 10}%`;
             });
@@ -1106,11 +1108,11 @@
                 statusEl.textContent = 'Encoding...';
 
                 // Use gifenc to encode
-                const gif = window.gifenc.GIFEncoder();
+                const gif = window.GIFEncoder();
 
                 frameData.forEach((imageData) => {
-                    const palette = window.gifenc.quantize(imageData.data, 256);
-                    const index = window.gifenc.applyPalette(imageData.data, palette);
+                    const palette = window.quantize(imageData.data, 256);
+                    const index = window.applyPalette(imageData.data, palette);
                     gif.writeFrame(index, 800, 600, { palette, delay: 10 });
                 });
                 gif.finish();
