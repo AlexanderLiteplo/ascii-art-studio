@@ -971,7 +971,7 @@
             progressFill.style.width = '90%';
 
             // Use gifenc to encode
-            const gif = window.GIFEncoder();
+            const gif = new window.GIFEncoder();
 
             frameData.forEach((imageData, i) => {
                 const palette = window.quantize(imageData.data, 256);
@@ -1108,7 +1108,7 @@
                 statusEl.textContent = 'Encoding...';
 
                 // Use gifenc to encode
-                const gif = window.GIFEncoder();
+                const gif = new window.GIFEncoder();
 
                 frameData.forEach((imageData) => {
                     const palette = window.quantize(imageData.data, 256);
