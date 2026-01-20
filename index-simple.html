@@ -284,6 +284,43 @@
             transition: width 0.3s;
         }
 
+        .live-text-display {
+            background: #000;
+            border: 2px solid #00ff00;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+            min-height: 400px;
+            position: relative;
+        }
+
+        .live-text-display h3 {
+            color: #00ff00;
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .live-ascii-output {
+            background: #000;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            white-space: pre;
+            overflow: auto;
+            max-height: 600px;
+            line-height: 1;
+            font-size: 8px;
+        }
+
+        .detail-indicator {
+            text-align: center;
+            color: #00ff00;
+            font-size: 14px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
         .auto-gif-gallery {
             background: #1a1a1a;
             border: 1px solid #00ff00;
@@ -389,6 +426,12 @@
         <div class="button-group">
             <button id="pauseBtn" style="display: none;">Pause</button>
             <button id="downloadBtn" style="display: none;">Download ASCII</button>
+        </div>
+
+        <div class="live-text-display" id="liveTextDisplay">
+            <h3>🟢 Live ASCII Detail Sweep (0-70)</h3>
+            <div class="live-ascii-output" id="liveAsciiOutput"></div>
+            <div class="detail-indicator" id="detailIndicator">Detail: 0</div>
         </div>
 
         <div class="auto-gif-gallery" id="autoGifGallery">
@@ -541,6 +584,9 @@
         const hsvCtx = hsvSphere.getContext('2d');
         const colorPresets = document.getElementById('colorPresets');
         const currentColorValue = document.getElementById('currentColorValue');
+        const liveTextDisplay = document.getElementById('liveTextDisplay');
+        const liveAsciiOutput = document.getElementById('liveAsciiOutput');
+        const detailIndicator = document.getElementById('detailIndicator');
 
         // ASCII character sets from darkest to brightest
         const charSets = [
@@ -565,6 +611,9 @@
         let selectedAnimation = null;
         let currentColor = '#00ff00';
         let generatedGifs = {}; // Store generated GIF blobs
+        let liveTextInterval = null;
+        let currentLiveDetail = 0;
+        let liveDetailIncreasing = true;
 
         // Character set names
         const charsetNames = ['Detailed', 'Ultra Detailed', 'Simple', 'Blocks'];
@@ -659,6 +708,9 @@
                     currentSource = img;
                     convertToAscii(img);
                     info.textContent = `Converted: ${file.name}`;
+
+                    // Start live text display
+                    startLiveTextDisplay();
 
                     // Auto-generate all GIF variations in parallel
                     autoGenerateAllGifs();
@@ -998,6 +1050,96 @@
                 statusText.textContent = 'Complete!';
             }, 2000);
         });
+
+        // Live text display with detail sweep
+        function startLiveTextDisplay() {
+            if (!currentSource) return;
+
+            // Show the display
+            liveTextDisplay.style.display = 'block';
+
+            // Clear any existing interval
+            if (liveTextInterval) {
+                clearInterval(liveTextInterval);
+            }
+
+            // Reset detail
+            currentLiveDetail = 0;
+            liveDetailIncreasing = true;
+
+            // Update every 100ms
+            liveTextInterval = setInterval(() => {
+                if (!currentSource) {
+                    clearInterval(liveTextInterval);
+                    return;
+                }
+
+                // Save current settings
+                const savedDetail = settings.detail;
+
+                // Set detail for live display
+                settings.detail = currentLiveDetail;
+
+                // Generate ASCII with current detail
+                const aspectRatio = currentSource.videoHeight ?
+                    currentSource.videoHeight / currentSource.videoWidth :
+                    currentSource.height / currentSource.width;
+                const width = settings.detail * 10;
+                const height = Math.floor(width * aspectRatio * 0.5);
+
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(currentSource, 0, 0, width, height);
+
+                const imageData = ctx.getImageData(0, 0, width, height);
+                const pixels = imageData.data;
+
+                let ascii = '';
+                const chars = charSets[currentCharSet];
+
+                for (let y = 0; y < height; y++) {
+                    for (let x = 0; x < width; x++) {
+                        const i = (y * width + x) * 4;
+                        let r = pixels[i];
+                        let g = pixels[i + 1];
+                        let b = pixels[i + 2];
+
+                        r = Math.min(255, r * settings.brightness);
+                        g = Math.min(255, g * settings.brightness);
+                        b = Math.min(255, b * settings.brightness);
+
+                        r = Math.min(255, Math.max(0, ((r / 255 - 0.5) * settings.contrast + 0.5) * 255));
+                        g = Math.min(255, Math.max(0, ((g / 255 - 0.5) * settings.contrast + 0.5) * 255));
+                        b = Math.min(255, Math.max(0, ((b / 255 - 0.5) * settings.contrast + 0.5) * 255));
+
+                        const brightness = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+                        const charIndex = Math.floor(brightness * (chars.length - 1));
+                        ascii += chars[charIndex];
+                    }
+                    ascii += '\n';
+                }
+
+                // Display the ASCII
+                liveAsciiOutput.textContent = ascii;
+                detailIndicator.textContent = `Detail: ${currentLiveDetail}`;
+
+                // Update detail for next frame
+                if (liveDetailIncreasing) {
+                    currentLiveDetail++;
+                    if (currentLiveDetail >= 70) {
+                        liveDetailIncreasing = false;
+                    }
+                } else {
+                    currentLiveDetail--;
+                    if (currentLiveDetail <= 0) {
+                        liveDetailIncreasing = true;
+                    }
+                }
+
+                // Restore settings
+                settings.detail = savedDetail;
+            }, 100);
+        }
 
         // Auto-generate all GIF variations in parallel
         async function autoGenerateAllGifs() {
