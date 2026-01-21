@@ -986,6 +986,114 @@
                 statusText.textContent = 'Complete!';
             }, 2000);
         });
+
+        // Export JSON sequence functionality
+        document.getElementById('exportJsonBtn').addEventListener('click', async () => {
+            if (!currentSource) {
+                alert('Please upload an image first!');
+                return;
+            }
+
+            const exportBtn = document.getElementById('exportJsonBtn');
+            const originalText = exportBtn.textContent;
+            exportBtn.textContent = 'Generating...';
+            exportBtn.disabled = true;
+
+            const sequence = [];
+            const savedDetail = settings.detail;
+            const savedBrightness = settings.brightness;
+            const savedContrast = settings.contrast;
+
+            // Generate ASCII for each detail level from 1 to 70
+            for (let detail = 1; detail <= 70; detail++) {
+                settings.detail = detail;
+
+                // Generate ASCII
+                const aspectRatio = currentSource.videoHeight ?
+                    currentSource.videoHeight / currentSource.videoWidth :
+                    currentSource.height / currentSource.width;
+                const width = settings.detail * 10;
+                const height = Math.floor(width * aspectRatio * 0.5);
+
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(currentSource, 0, 0, width, height);
+
+                const imageData = ctx.getImageData(0, 0, width, height);
+                const pixels = imageData.data;
+
+                let ascii = '';
+                const chars = charSets[currentCharSet];
+
+                for (let y = 0; y < height; y++) {
+                    for (let x = 0; x < width; x++) {
+                        const i = (y * width + x) * 4;
+                        let r = pixels[i];
+                        let g = pixels[i + 1];
+                        let b = pixels[i + 2];
+
+                        r = Math.min(255, r * settings.brightness);
+                        g = Math.min(255, g * settings.brightness);
+                        b = Math.min(255, b * settings.brightness);
+
+                        r = Math.min(255, Math.max(0, ((r / 255 - 0.5) * settings.contrast + 0.5) * 255));
+                        g = Math.min(255, Math.max(0, ((g / 255 - 0.5) * settings.contrast + 0.5) * 255));
+                        b = Math.min(255, Math.max(0, ((b / 255 - 0.5) * settings.contrast + 0.5) * 255));
+
+                        const brightness = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+                        const charIndex = Math.floor(brightness * (chars.length - 1));
+                        ascii += chars[charIndex];
+                    }
+                    ascii += '\n';
+                }
+
+                // Add to sequence
+                sequence.push({
+                    detail: detail,
+                    ascii: ascii,
+                    width: width,
+                    height: height
+                });
+
+                // Update button text with progress
+                exportBtn.textContent = `${detail}/70`;
+
+                // Small delay to prevent UI freeze
+                await new Promise(resolve => setTimeout(resolve, 10));
+            }
+
+            // Restore original settings
+            settings.detail = savedDetail;
+            settings.brightness = savedBrightness;
+            settings.contrast = savedContrast;
+            convertToAscii(currentSource);
+
+            // Create JSON file
+            const jsonData = {
+                metadata: {
+                    totalFrames: sequence.length,
+                    detailRange: [1, 70],
+                    characterSet: charsetNames[currentCharSet],
+                    brightness: savedBrightness,
+                    contrast: savedContrast,
+                    exportDate: new Date().toISOString()
+                },
+                frames: sequence
+            };
+
+            const jsonString = JSON.stringify(jsonData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ascii-sequence-${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            // Reset button
+            exportBtn.textContent = originalText;
+            exportBtn.disabled = false;
+        });
     </script>
 </body>
 </html>
