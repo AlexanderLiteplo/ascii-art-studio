@@ -2,596 +2,598 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ASCII Art Converter</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ASCII Art Studio</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            font-family: 'Courier New', monospace;
-            background: #0a0a0a;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Mono', 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
             color: #00ff00;
-            padding: 20px;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 100%;
             margin: 0 auto;
+            padding: 0;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(180deg, #000 0%, #0a0a0a 100%);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid #00ff00;
+            box-shadow: 0 4px 20px rgba(0, 255, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
         }
 
         h1 {
-            text-align: center;
-            margin-bottom: 10px;
+            font-size: 24px;
             color: #00ff00;
-            font-size: 2em;
-            text-shadow: 0 0 10px #00ff00;
+            text-shadow: 0 0 20px #00ff00;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            font-weight: 700;
         }
 
         .subtitle {
-            text-align: center;
             color: #00aa00;
-            margin-bottom: 30px;
-            font-size: 14px;
+            font-size: 12px;
+            opacity: 0.8;
         }
 
-        .upload-area {
-            background: #1a1a1a;
-            border: 2px dashed #00ff00;
-            border-radius: 8px;
-            padding: 40px;
+        /* Upload Card */
+        .upload-card {
+            margin: 20px;
+            background: linear-gradient(145deg, #1a1a1a 0%, #0f0f0f 100%);
+            border: 2px solid #00ff00;
+            border-radius: 20px;
+            padding: 40px 20px;
             text-align: center;
-            margin-bottom: 20px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 32px rgba(0, 255, 0, 0.1);
         }
 
-        .upload-area:hover {
-            background: #2a2a2a;
-            border-color: #00ff88;
+        .upload-card:active {
+            transform: scale(0.98);
+            box-shadow: 0 4px 16px rgba(0, 255, 0, 0.2);
         }
 
-        .upload-area.dragover {
-            background: #2a4a2a;
-            border-color: #00ff88;
+        .upload-icon {
+            font-size: 64px;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 10px #00ff00);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .upload-text {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #00ff00;
+        }
+
+        .upload-subtext {
+            font-size: 12px;
+            color: #00aa00;
         }
 
         input[type="file"] {
             display: none;
         }
 
-        .controls {
-            background: #1a1a1a;
-            border: 1px solid #00ff00;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
+        /* Output Display */
+        .output-card {
+            margin: 20px;
+            background: #000;
+            border: 2px solid #00ff00;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 255, 0, 0.15);
+            display: none;
         }
 
-        .control-group {
-            margin-bottom: 15px;
-        }
-
-        label {
+        .output-card.visible {
             display: block;
-            margin-bottom: 5px;
-            color: #00ff00;
-        }
-
-        input[type="range"] {
-            width: 100%;
-            height: 6px;
-            background: #333;
-            outline: none;
-            border-radius: 3px;
-        }
-
-        .value-display {
-            display: inline-block;
-            background: #0a3a0a;
-            padding: 4px 12px;
-            border-radius: 4px;
-            margin-left: 10px;
-            color: #00ff00;
-            border: 1px solid #00aa00;
-        }
-
-        .slider-control {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .control-btn {
-            background: #00ff00;
-            color: #000;
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 6px;
-            font-size: 20px;
-            font-weight: bold;
-            cursor: pointer;
-            font-family: 'Courier New', monospace;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .control-btn:hover {
-            background: #00cc00;
-            box-shadow: 0 0 15px #00ff00;
-        }
-
-        .control-btn:active {
-            transform: scale(0.95);
         }
 
         #output {
             background: #000;
-            border: 1px solid #00ff00;
-            border-radius: 8px;
-            padding: 10px;
+            padding: 15px;
             overflow: auto;
             font-family: 'Courier New', monospace;
             line-height: 1;
             font-size: 6px;
             color: #00ff00;
             white-space: pre;
-            max-height: 80vh;
+            max-height: 50vh;
+            -webkit-overflow-scrolling: touch;
         }
 
-        #canvas {
-            display: none;
+        /* Control Cards */
+        .control-card {
+            margin: 20px;
+            background: linear-gradient(145deg, #1a1a1a 0%, #0f0f0f 100%);
+            border: 2px solid #00ff00;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 255, 0, 0.1);
         }
 
-        .info {
-            text-align: center;
-            color: #00aa00;
-            margin-top: 10px;
-            font-size: 12px;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 10px;
+        .control-card h3 {
+            color: #00ff00;
+            font-size: 16px;
             margin-bottom: 20px;
+            text-align: center;
+            letter-spacing: 1px;
         }
 
-        button {
-            flex: 1;
-            background: #00ff00;
+        /* Control Group */
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #00ff00;
+        }
+
+        .control-value {
+            background: linear-gradient(145deg, #00ff00 0%, #00cc00 100%);
+            color: #000;
+            padding: 6px 16px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 14px;
+            min-width: 60px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 255, 0, 0.3);
+        }
+
+        /* +/- Button Controls */
+        .button-control {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .control-btn {
+            background: linear-gradient(145deg, #00ff00 0%, #00cc00 100%);
             color: #000;
             border: none;
-            padding: 12px 20px;
-            border-radius: 6px;
+            min-width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 16px rgba(0, 255, 0, 0.3);
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        .control-btn:active {
+            transform: scale(0.92);
+            box-shadow: 0 2px 8px rgba(0, 255, 0, 0.4);
+        }
+
+        .control-hint {
+            flex: 1;
+            text-align: center;
+            color: #00aa00;
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        /* Character Set Buttons */
+        .charset-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .charset-btn {
+            background: linear-gradient(145deg, #1a3a1a 0%, #0a2a0a 100%);
+            color: #00ff00;
+            border: 2px solid #00aa00;
+            padding: 16px;
+            border-radius: 16px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            font-family: 'Courier New', monospace;
-            transition: all 0.3s;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+            touch-action: manipulation;
         }
 
-        button:hover {
-            background: #00cc00;
-            box-shadow: 0 0 20px #00ff00;
+        .charset-btn:active {
+            transform: scale(0.95);
         }
 
-        button:active {
-            transform: scale(0.98);
+        .charset-btn.active {
+            background: linear-gradient(145deg, #00ff00 0%, #00cc00 100%);
+            color: #000;
+            border-color: #00ff00;
+            box-shadow: 0 4px 16px rgba(0, 255, 0, 0.4);
         }
 
-        #videoPreview {
+        /* Action Buttons */
+        .action-buttons {
+            margin: 20px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .action-btn {
+            flex: 1;
+            background: linear-gradient(145deg, #00ff00 0%, #00cc00 100%);
+            color: #000;
+            border: none;
+            padding: 16px;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 16px rgba(0, 255, 0, 0.3);
             display: none;
-            max-width: 100%;
-            margin-bottom: 20px;
-            border: 1px solid #00ff00;
-            border-radius: 8px;
+            touch-action: manipulation;
         }
 
-        .export-section {
-            background: #1a1a1a;
-            border: 1px solid #00ff00;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
+        .action-btn.visible {
+            display: block;
         }
 
-        .export-section h3 {
-            color: #00ff00;
-            margin-bottom: 15px;
-            font-size: 18px;
+        .action-btn:active {
+            transform: scale(0.96);
+            box-shadow: 0 2px 8px rgba(0, 255, 0, 0.4);
         }
 
-        .animation-options {
+        .action-btn.secondary {
+            background: linear-gradient(145deg, #ff00ff 0%, #cc00cc 100%);
+            box-shadow: 0 4px 16px rgba(255, 0, 255, 0.3);
+        }
+
+        /* Color Picker */
+        .color-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(4, 1fr);
             gap: 10px;
-            margin-bottom: 20px;
+            margin-top: 15px;
+        }
+
+        .color-preset {
+            aspect-ratio: 1;
+            border: 3px solid #333;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .color-preset:active {
+            transform: scale(0.9);
+        }
+
+        .color-preset.selected {
+            border-color: #00ff00;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.6);
+            transform: scale(1.05);
+        }
+
+        /* Animation Options */
+        .animation-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 15px;
         }
 
         .animation-option {
-            background: #0a3a0a;
+            background: linear-gradient(145deg, #1a3a1a 0%, #0a2a0a 100%);
             border: 2px solid #00aa00;
-            border-radius: 6px;
-            padding: 15px;
+            border-radius: 16px;
+            padding: 16px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             text-align: center;
         }
 
-        .animation-option:hover {
-            background: #0a5a0a;
-            border-color: #00ff00;
-            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+        .animation-option:active {
+            transform: scale(0.95);
         }
 
         .animation-option.selected {
-            background: #0a5a0a;
+            background: linear-gradient(145deg, #00ff00 0%, #00cc00 100%);
             border-color: #00ff00;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+            box-shadow: 0 4px 16px rgba(0, 255, 0, 0.4);
         }
 
         .animation-option h4 {
             color: #00ff00;
-            margin-bottom: 5px;
-            font-size: 14px;
+            font-size: 13px;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .animation-option.selected h4,
+        .animation-option.selected p {
+            color: #000;
         }
 
         .animation-option p {
             color: #00aa00;
             font-size: 11px;
+            line-height: 1.4;
         }
 
-        .color-picker-section {
-            margin-bottom: 20px;
-        }
-
-        .hsv-sphere-container {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        #hsvSphere {
-            border: 1px solid #00ff00;
-            border-radius: 8px;
-            cursor: crosshair;
-        }
-
-        .color-presets {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-            gap: 8px;
-        }
-
-        .color-preset {
-            width: 100%;
-            height: 40px;
-            border: 2px solid #333;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .color-preset:hover {
-            border-color: #00ff00;
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
-        }
-
-        .color-preset.selected {
-            border-color: #00ff00;
-            box-shadow: 0 0 15px rgba(0, 255, 0, 0.7);
-        }
-
+        /* Export Status */
         .export-status {
-            background: #0a3a0a;
-            border: 1px solid #00aa00;
-            border-radius: 6px;
-            padding: 15px;
-            margin-top: 15px;
+            background: linear-gradient(145deg, #1a3a1a 0%, #0a2a0a 100%);
+            border: 2px solid #00aa00;
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 20px;
             text-align: center;
-            color: #00ff00;
             display: none;
+        }
+
+        .export-status.visible {
+            display: block;
+        }
+
+        .status-text {
+            color: #00ff00;
+            font-size: 14px;
+            margin-bottom: 12px;
+            font-weight: 600;
         }
 
         .progress-bar {
             width: 100%;
-            height: 20px;
-            background: #333;
-            border-radius: 10px;
+            height: 24px;
+            background: #000;
+            border-radius: 12px;
             overflow: hidden;
-            margin-top: 10px;
+            border: 2px solid #00aa00;
         }
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #00aa00, #00ff00);
+            background: linear-gradient(90deg, #00aa00, #00ff00, #00aa00);
             width: 0%;
-            transition: width 0.3s;
+            transition: width 0.3s ease;
+            background-size: 200% 100%;
+            animation: shimmer 2s linear infinite;
         }
 
-        .live-text-display {
-            background: #000;
-            border: 2px solid #00ff00;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            display: none;
-            min-height: 400px;
-            position: relative;
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
         }
 
-        .live-text-display h3 {
-            color: #00ff00;
+        /* Info Text */
+        .info-text {
             text-align: center;
-            margin-bottom: 15px;
-            font-size: 18px;
-        }
-
-        .live-ascii-output {
-            background: #000;
-            color: #00ff00;
-            font-family: 'Courier New', monospace;
-            white-space: pre;
-            overflow: auto;
-            max-height: 600px;
-            line-height: 1;
-            font-size: 8px;
-        }
-
-        .detail-indicator {
-            text-align: center;
-            color: #00ff00;
-            font-size: 14px;
-            margin-top: 10px;
-            font-weight: bold;
-        }
-
-        .auto-gif-gallery {
-            background: #1a1a1a;
-            border: 1px solid #00ff00;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            display: none;
-        }
-
-        .auto-gif-gallery h3 {
-            color: #00ff00;
-            margin-bottom: 15px;
-            font-size: 18px;
-            text-align: center;
-        }
-
-        .gif-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-        }
-
-        .gif-item {
-            background: #0a0a0a;
-            border: 2px solid #00aa00;
-            border-radius: 6px;
-            padding: 15px;
-            text-align: center;
-            transition: all 0.3s;
-        }
-
-        .gif-item.generating {
-            border-color: #ffaa00;
-            animation: pulse 1.5s infinite;
-        }
-
-        .gif-item.complete {
-            border-color: #00ff00;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-
-        .gif-item h4 {
-            color: #00ff00;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-
-        .gif-preview {
-            width: 100%;
-            max-width: 300px;
-            height: auto;
-            border: 1px solid #333;
-            border-radius: 4px;
-            background: #000;
-            margin: 10px auto;
-            display: block;
-        }
-
-        .gif-status {
             color: #00aa00;
             font-size: 12px;
-            margin-top: 10px;
+            padding: 15px;
+            opacity: 0.7;
         }
 
-        .gif-download-btn {
-            background: #00ff00;
-            color: #000;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            font-weight: 600;
-            cursor: pointer;
-            font-family: 'Courier New', monospace;
-            margin-top: 10px;
-            transition: all 0.3s;
+        #canvas, #videoPreview {
             display: none;
         }
 
-        .gif-download-btn:hover {
-            background: #00cc00;
-            box-shadow: 0 0 10px #00ff00;
+        /* Desktop Responsive */
+        @media (min-width: 768px) {
+            .container {
+                max-width: 800px;
+                margin: 0 auto;
+            }
+
+            h1 {
+                font-size: 36px;
+            }
+
+            .subtitle {
+                font-size: 14px;
+            }
+
+            .charset-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .animation-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .color-grid {
+                grid-template-columns: repeat(6, 1fr);
+            }
         }
 
-        .charset-btn {
-            background: #0a3a0a;
-            color: #00ff00;
-            border: 2px solid #00aa00;
+        @media (min-width: 1024px) {
+            .container {
+                max-width: 1200px;
+            }
+
+            #output {
+                max-height: 70vh;
+            }
         }
 
-        .charset-btn:hover {
-            background: #0a5a0a;
-            border-color: #00ff00;
+        /* Loading Animation */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
-        .charset-btn.active {
-            background: #00ff00;
-            color: #000;
-            border-color: #00ff00;
+        .loading {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        /* Smooth Scrolling */
+        html {
+            scroll-behavior: smooth;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>ASCII ART CONVERTER</h1>
-        <p class="subtitle">Upload an image or video and watch it transform into ASCII art</p>
+        <div class="header">
+            <h1>ASCII ART STUDIO</h1>
+            <p class="subtitle">Transform images into ASCII art</p>
+        </div>
 
-        <div class="upload-area" id="uploadArea">
-            <p style="font-size: 48px; margin-bottom: 10px;">+</p>
-            <p>Click or drag image/video here</p>
-            <p style="font-size: 12px; color: #00aa00; margin-top: 10px;">Supports: JPG, PNG, GIF, MP4, WEBM</p>
+        <div class="upload-card" id="uploadArea">
+            <div class="upload-icon">+</div>
+            <p class="upload-text">Tap to Upload</p>
+            <p class="upload-subtext">JPG, PNG, GIF, MP4, WEBM</p>
         </div>
 
         <input type="file" id="fileInput" accept="image/*,video/*">
 
-        <div class="button-group">
-            <button id="pauseBtn" style="display: none;">Pause</button>
-            <button id="downloadBtn" style="display: none;">Download ASCII</button>
+        <div class="output-card" id="outputCard">
+            <div id="output"></div>
         </div>
 
-
-        <div class="export-section">
-            <h3>🎬 Export Animated GIF</h3>
-
-            <div class="color-picker-section">
-                <label style="margin-bottom: 10px; display: block;">Choose ASCII Color:</label>
-                <div class="hsv-sphere-container">
-                    <canvas id="hsvSphere" width="300" height="300"></canvas>
-                    <div style="flex: 1; min-width: 200px;">
-                        <label style="margin-bottom: 10px; display: block;">Quick Presets:</label>
-                        <div class="color-presets" id="colorPresets"></div>
-                    </div>
-                </div>
-                <div style="margin-top: 15px;">
-                    <label>Current Color: <span class="value-display" id="currentColorValue" style="display: inline-block; width: 100px; text-align: center;">#00ff00</span></label>
-                </div>
-            </div>
-
-            <label style="display: block; margin-bottom: 10px;">Select Animation Type:</label>
-            <div class="animation-options">
-                <div class="animation-option" data-animation="detail">
-                    <h4>Detail Sweep</h4>
-                    <p>Animates detail slider from low to high and back</p>
-                </div>
-                <div class="animation-option" data-animation="brightness">
-                    <h4>Brightness Pulse</h4>
-                    <p>Pulses brightness from dark to bright</p>
-                </div>
-                <div class="animation-option" data-animation="contrast">
-                    <h4>Contrast Wave</h4>
-                    <p>Waves contrast for dramatic effect</p>
-                </div>
-                <div class="animation-option" data-animation="rainbow">
-                    <h4>Rainbow Cycle</h4>
-                    <p>Cycles through rainbow colors</p>
-                </div>
-                <div class="animation-option" data-animation="combo">
-                    <h4>Combo Effect</h4>
-                    <p>Combines detail + brightness animation</p>
-                </div>
-            </div>
-
-            <button id="exportGifBtn" style="background: #ff00ff; width: 100%;">Export GIF</button>
-
-            <div class="export-status" id="exportStatus">
-                <div id="statusText">Preparing export...</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-            </div>
+        <div class="action-buttons">
+            <button class="action-btn" id="pauseBtn">Pause</button>
+            <button class="action-btn" id="downloadBtn">Download</button>
         </div>
 
-        <div class="controls">
+        <div class="control-card">
+            <h3>CONTROLS</h3>
+
             <div class="control-group">
-                <label>
-                    Detail Level (ASCII resolution): <span class="value-display" id="detailValue">10</span>
-                </label>
-                <div class="slider-control">
+                <div class="control-label">
+                    <span>Detail Level</span>
+                    <span class="control-value" id="detailValue">10</span>
+                </div>
+                <div class="button-control">
                     <button class="control-btn" id="detailMinus">-</button>
-                    <div style="flex: 1; text-align: center; color: #00aa00; font-size: 14px;">
-                        Tap +/- to adjust
-                    </div>
+                    <span class="control-hint">Adjust Resolution</span>
                     <button class="control-btn" id="detailPlus">+</button>
                 </div>
             </div>
 
             <div class="control-group">
-                <label>
-                    Brightness: <span class="value-display" id="brightnessValue">1.0</span>
-                </label>
-                <div class="slider-control">
+                <div class="control-label">
+                    <span>Brightness</span>
+                    <span class="control-value" id="brightnessValue">1.0</span>
+                </div>
+                <div class="button-control">
                     <button class="control-btn" id="brightnessMinus">-</button>
-                    <div style="flex: 1; text-align: center; color: #00aa00; font-size: 14px;">
-                        Tap +/- to adjust
-                    </div>
+                    <span class="control-hint">Adjust Brightness</span>
                     <button class="control-btn" id="brightnessPlus">+</button>
                 </div>
             </div>
 
             <div class="control-group">
-                <label>
-                    Contrast: <span class="value-display" id="contrastValue">1.0</span>
-                </label>
-                <div class="slider-control">
+                <div class="control-label">
+                    <span>Contrast</span>
+                    <span class="control-value" id="contrastValue">1.0</span>
+                </div>
+                <div class="button-control">
                     <button class="control-btn" id="contrastMinus">-</button>
-                    <div style="flex: 1; text-align: center; color: #00aa00; font-size: 14px;">
-                        Tap +/- to adjust
-                    </div>
+                    <span class="control-hint">Adjust Contrast</span>
                     <button class="control-btn" id="contrastPlus">+</button>
                 </div>
             </div>
 
             <div class="control-group">
-                <label style="margin-bottom: 10px;">Character Set:</label>
-                <div class="button-group" style="margin-bottom: 0;">
+                <div class="control-label">
+                    <span>Character Set</span>
+                </div>
+                <div class="charset-grid">
                     <button class="charset-btn active" data-charset="0">Detailed</button>
-                    <button class="charset-btn" data-charset="1">Ultra Detailed</button>
+                    <button class="charset-btn" data-charset="1">Ultra</button>
                     <button class="charset-btn" data-charset="2">Simple</button>
                     <button class="charset-btn" data-charset="3">Blocks</button>
                 </div>
             </div>
         </div>
 
-        <video id="videoPreview" loop muted></video>
+        <div class="control-card">
+            <h3>CHOOSE COLOR</h3>
+            <div class="color-grid" id="colorGrid"></div>
+        </div>
+
+        <div class="control-card">
+            <h3>EXPORT ANIMATED GIF</h3>
+
+            <div class="control-label">
+                <span>Animation Type</span>
+            </div>
+            <div class="animation-grid">
+                <div class="animation-option" data-animation="detail">
+                    <h4>Detail Sweep</h4>
+                    <p>Animates detail low to high</p>
+                </div>
+                <div class="animation-option" data-animation="brightness">
+                    <h4>Brightness</h4>
+                    <p>Pulses brightness</p>
+                </div>
+                <div class="animation-option" data-animation="contrast">
+                    <h4>Contrast</h4>
+                    <p>Waves contrast</p>
+                </div>
+                <div class="animation-option" data-animation="rainbow">
+                    <h4>Rainbow</h4>
+                    <p>Cycles colors</p>
+                </div>
+                <div class="animation-option" data-animation="combo">
+                    <h4>Combo</h4>
+                    <p>Detail + brightness</p>
+                </div>
+            </div>
+
+            <button class="action-btn secondary visible" id="exportGifBtn" style="margin-top: 20px;">Export GIF</button>
+
+            <div class="export-status" id="exportStatus">
+                <div class="status-text" id="statusText">Preparing export...</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+        </div>
+
+        <p class="info-text" id="infoText">Ready to convert!</p>
+
         <canvas id="canvas"></canvas>
-        <div id="output"></div>
-        <div class="info" id="info">Ready to convert!</div>
+        <video id="videoPreview" loop muted></video>
     </div>
 
     <script type="module">
-        // Import gifenc as ES module
         import { GIFEncoder, quantize, applyPalette } from 'https://unpkg.com/gifenc@1.0.3/dist/gifenc.esm.js';
-
-        // Make available globally for use in the main script
         window.GIFEncoder = GIFEncoder;
         window.quantize = quantize;
         window.applyPalette = applyPalette;
@@ -600,9 +602,10 @@
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
         const output = document.getElementById('output');
+        const outputCard = document.getElementById('outputCard');
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
-        const info = document.getElementById('info');
+        const infoText = document.getElementById('infoText');
         const videoPreview = document.getElementById('videoPreview');
         const pauseBtn = document.getElementById('pauseBtn');
         const downloadBtn = document.getElementById('downloadBtn');
@@ -610,23 +613,18 @@
         const exportStatus = document.getElementById('exportStatus');
         const statusText = document.getElementById('statusText');
         const progressFill = document.getElementById('progressFill');
-        const hsvSphere = document.getElementById('hsvSphere');
-        const hsvCtx = hsvSphere.getContext('2d');
-        const colorPresets = document.getElementById('colorPresets');
-        const currentColorValue = document.getElementById('currentColorValue');
+        const colorGrid = document.getElementById('colorGrid');
 
-        // ASCII character sets from darkest to brightest
         const charSets = [
-            " .:-=+*#%@",  // Detailed
-            " .'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$",  // Ultra detailed
-            " .,-~:;=!*#$@",  // Simple
-            " ░▒▓█"  // Blocks
+            " .:-=+*#%@",
+            " .'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$",
+            " .,-~:;=!*#$@",
+            " ░▒▓█"
         ];
-
 
         let currentCharSet = 0;
         let settings = {
-            baseWidth: 120, // Base width for detail level 10
+            baseWidth: 120,
             brightness: 1.0,
             contrast: 1.0,
             detail: 10
@@ -638,10 +636,7 @@
         let selectedAnimation = null;
         let currentColor = '#00ff00';
 
-        // Character set names
-        const charsetNames = ['Detailed', 'Ultra Detailed', 'Simple', 'Blocks'];
-
-        // +/- button controls for Detail
+        // Control buttons
         document.getElementById('detailPlus').addEventListener('click', () => {
             if (settings.detail < 120) {
                 settings.detail += 1;
@@ -658,7 +653,6 @@
             }
         });
 
-        // +/- button controls for Brightness
         document.getElementById('brightnessPlus').addEventListener('click', () => {
             if (settings.brightness < 2.0) {
                 settings.brightness = Math.min(2.0, settings.brightness + 0.1);
@@ -675,7 +669,6 @@
             }
         });
 
-        // +/- button controls for Contrast
         document.getElementById('contrastPlus').addEventListener('click', () => {
             if (settings.contrast < 2.0) {
                 settings.contrast = Math.min(2.0, settings.contrast + 0.1);
@@ -692,7 +685,7 @@
             }
         });
 
-        // Character set button handling
+        // Character set buttons
         document.querySelectorAll('.charset-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.charset-btn').forEach(b => b.classList.remove('active'));
@@ -702,21 +695,15 @@
             });
         });
 
-        // Upload area interactions
+        // Upload interactions
         uploadArea.addEventListener('click', () => fileInput.click());
 
         uploadArea.addEventListener('dragover', (e) => {
             e.preventDefault();
-            uploadArea.classList.add('dragover');
-        });
-
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragover');
         });
 
         uploadArea.addEventListener('drop', (e) => {
             e.preventDefault();
-            uploadArea.classList.remove('dragover');
             if (e.dataTransfer.files.length > 0) {
                 handleFile(e.dataTransfer.files[0]);
             }
@@ -736,9 +723,7 @@
                 renderVideoFrame();
             } else if (isPaused && isVideo) {
                 videoPreview.pause();
-                if (animationId) {
-                    cancelAnimationFrame(animationId);
-                }
+                if (animationId) cancelAnimationFrame(animationId);
             }
         });
 
@@ -758,31 +743,30 @@
 
             if (fileType === 'image') {
                 isVideo = false;
-                pauseBtn.style.display = 'none';
-                downloadBtn.style.display = 'block';
+                pauseBtn.classList.remove('visible');
+                downloadBtn.classList.add('visible');
                 videoPreview.style.display = 'none';
+                outputCard.classList.add('visible');
 
                 const img = new Image();
                 img.onload = () => {
                     currentSource = img;
-
-                    // Just convert with base settings - no animations or live display on load
                     convertToAscii(img);
-                    info.textContent = `Converted: ${file.name}`;
+                    infoText.textContent = `Converted: ${file.name}`;
                 };
                 img.src = URL.createObjectURL(file);
             } else if (fileType === 'video') {
                 isVideo = true;
-                pauseBtn.style.display = 'block';
-                downloadBtn.style.display = 'none';
-                videoPreview.style.display = 'block';
+                pauseBtn.classList.add('visible');
+                downloadBtn.classList.remove('visible');
+                outputCard.classList.add('visible');
 
                 videoPreview.src = URL.createObjectURL(file);
                 videoPreview.onloadedmetadata = () => {
                     currentSource = videoPreview;
                     videoPreview.play();
                     renderVideoFrame();
-                    info.textContent = `Playing: ${file.name}`;
+                    infoText.textContent = `Playing: ${file.name}`;
                 };
             }
         }
@@ -795,51 +779,37 @@
         }
 
         function convertToAscii(source) {
-            // Calculate dimensions based on detail level
-            // Detail level directly controls number of ASCII characters
-            // Higher detail = more characters = finer grain
             const aspectRatio = source.videoHeight ? source.videoHeight / source.videoWidth : source.height / source.width;
-            const width = settings.detail * 10; // detail 1 = 10 chars, detail 30 = 300 chars
-            const height = Math.floor(width * aspectRatio * 0.5); // 0.5 because chars are taller than wide
+            const width = settings.detail * 10;
+            const height = Math.floor(width * aspectRatio * 0.5);
 
-            // Set canvas size
             canvas.width = width;
             canvas.height = height;
-
-            // Draw source to canvas
             ctx.drawImage(source, 0, 0, width, height);
 
-            // Get image data
             const imageData = ctx.getImageData(0, 0, width, height);
             const pixels = imageData.data;
 
             let ascii = '';
-            // Use full character set (no filtering based on detail level)
             const chars = charSets[currentCharSet];
 
             for (let y = 0; y < height; y++) {
                 for (let x = 0; x < width; x++) {
                     const i = (y * width + x) * 4;
 
-                    // Get RGB values
                     let r = pixels[i];
                     let g = pixels[i + 1];
                     let b = pixels[i + 2];
 
-                    // Apply brightness
                     r = Math.min(255, r * settings.brightness);
                     g = Math.min(255, g * settings.brightness);
                     b = Math.min(255, b * settings.brightness);
 
-                    // Apply contrast
                     r = Math.min(255, Math.max(0, ((r / 255 - 0.5) * settings.contrast + 0.5) * 255));
                     g = Math.min(255, Math.max(0, ((g / 255 - 0.5) * settings.contrast + 0.5) * 255));
                     b = Math.min(255, Math.max(0, ((b / 255 - 0.5) * settings.contrast + 0.5) * 255));
 
-                    // Calculate brightness (luminance)
                     const brightness = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-
-                    // Map brightness to character
                     const charIndex = Math.floor(brightness * (chars.length - 1));
                     ascii += chars[charIndex];
                 }
@@ -847,14 +817,53 @@
             }
 
             output.textContent = ascii;
-
-            // Adjust font size based on detail level for better visual appearance
-            // Higher detail = smaller font to fit more characters
             const fontSize = Math.max(2, Math.min(10, 120 / settings.detail));
             output.style.fontSize = fontSize + 'px';
         }
 
-        // HSV to RGB conversion
+        // Color presets
+        const presetColors = [
+            { name: 'Matrix', color: '#00ff00' },
+            { name: 'Cyan', color: '#00ffff' },
+            { name: 'Magenta', color: '#ff00ff' },
+            { name: 'Yellow', color: '#ffff00' },
+            { name: 'Red', color: '#ff0000' },
+            { name: 'Blue', color: '#0066ff' },
+            { name: 'Purple', color: '#9933ff' },
+            { name: 'Orange', color: '#ff6600' },
+            { name: 'Pink', color: '#ff66cc' },
+            { name: 'Lime', color: '#ccff00' },
+            { name: 'Aqua', color: '#00ffcc' },
+            { name: 'White', color: '#ffffff' }
+        ];
+
+        presetColors.forEach((preset) => {
+            const div = document.createElement('div');
+            div.className = 'color-preset';
+            div.style.backgroundColor = preset.color;
+            div.title = preset.name;
+            if (preset.color === currentColor) {
+                div.classList.add('selected');
+            }
+            div.addEventListener('click', () => {
+                currentColor = preset.color;
+                output.style.color = currentColor;
+                document.querySelectorAll('.color-preset').forEach(p => p.classList.remove('selected'));
+                div.classList.add('selected');
+            });
+            colorGrid.appendChild(div);
+        });
+
+        // Animation selection
+        document.querySelectorAll('.animation-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.animation-option').forEach(o => o.classList.remove('selected'));
+                option.classList.add('selected');
+                selectedAnimation = option.dataset.animation;
+            });
+        });
+
+        // HSV conversion
         function hsvToRgb(h, s, v) {
             let r, g, b;
             const i = Math.floor(h * 6);
@@ -884,110 +893,10 @@
             }).join('');
         }
 
-        // Draw HSV sphere (actually a 2D HSV picker)
-        function drawHSVSphere() {
-            const size = 300;
-            const centerX = size / 2;
-            const centerY = size / 2;
-            const radius = size / 2 - 10;
-
-            for (let y = 0; y < size; y++) {
-                for (let x = 0; x < size; x++) {
-                    const dx = x - centerX;
-                    const dy = y - centerY;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-
-                    if (distance <= radius) {
-                        const angle = Math.atan2(dy, dx);
-                        const hue = (angle + Math.PI) / (2 * Math.PI);
-                        const saturation = distance / radius;
-                        const value = 1.0;
-
-                        const rgb = hsvToRgb(hue, saturation, value);
-                        hsvCtx.fillStyle = rgbToHex(rgb.r, rgb.g, rgb.b);
-                        hsvCtx.fillRect(x, y, 1, 1);
-                    }
-                }
-            }
-        }
-
-        // Handle HSV sphere click
-        hsvSphere.addEventListener('click', (e) => {
-            const rect = hsvSphere.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            const centerX = 150;
-            const centerY = 150;
-            const dx = x - centerX;
-            const dy = y - centerY;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            const radius = 140;
-
-            if (distance <= radius) {
-                const angle = Math.atan2(dy, dx);
-                const hue = (angle + Math.PI) / (2 * Math.PI);
-                const saturation = distance / radius;
-                const value = 1.0;
-
-                const rgb = hsvToRgb(hue, saturation, value);
-                currentColor = rgbToHex(rgb.r, rgb.g, rgb.b);
-                currentColorValue.textContent = currentColor;
-                currentColorValue.style.color = currentColor;
-                output.style.color = currentColor;
-
-                // Update selected preset
-                document.querySelectorAll('.color-preset').forEach(p => p.classList.remove('selected'));
-            }
-        });
-
-        // Color presets
-        const presetColors = [
-            { name: 'Matrix Green', color: '#00ff00' },
-            { name: 'Cyan', color: '#00ffff' },
-            { name: 'Magenta', color: '#ff00ff' },
-            { name: 'Yellow', color: '#ffff00' },
-            { name: 'Red', color: '#ff0000' },
-            { name: 'Blue', color: '#0066ff' },
-            { name: 'Purple', color: '#9933ff' },
-            { name: 'Orange', color: '#ff6600' },
-            { name: 'Pink', color: '#ff66cc' },
-            { name: 'Lime', color: '#ccff00' },
-            { name: 'Aqua', color: '#00ffcc' },
-            { name: 'White', color: '#ffffff' }
-        ];
-
-        presetColors.forEach((preset, idx) => {
-            const div = document.createElement('div');
-            div.className = 'color-preset';
-            div.style.backgroundColor = preset.color;
-            div.title = preset.name;
-            if (preset.color === currentColor) {
-                div.classList.add('selected');
-            }
-            div.addEventListener('click', () => {
-                currentColor = preset.color;
-                currentColorValue.textContent = currentColor;
-                currentColorValue.style.color = currentColor;
-                output.style.color = currentColor;
-                document.querySelectorAll('.color-preset').forEach(p => p.classList.remove('selected'));
-                div.classList.add('selected');
-            });
-            colorPresets.appendChild(div);
-        });
-
-        // Animation selection
-        document.querySelectorAll('.animation-option').forEach(option => {
-            option.addEventListener('click', () => {
-                document.querySelectorAll('.animation-option').forEach(o => o.classList.remove('selected'));
-                option.classList.add('selected');
-                selectedAnimation = option.dataset.animation;
-            });
-        });
-
-        // Export GIF functionality
+        // Export GIF
         exportGifBtn.addEventListener('click', async () => {
             if (!currentSource) {
-                alert('Please upload an image or video first!');
+                alert('Please upload an image first!');
                 return;
             }
             if (!selectedAnimation) {
@@ -995,33 +904,31 @@
                 return;
             }
 
-            exportStatus.style.display = 'block';
-            statusText.textContent = 'Initializing GIF encoder...';
+            exportStatus.classList.add('visible');
+            statusText.textContent = 'Initializing...';
             progressFill.style.width = '0%';
 
             const frames = 30;
             const originalSettings = { ...settings };
-            const originalColor = output.style.color;
             const frameData = [];
 
             for (let i = 0; i < frames; i++) {
                 const progress = i / frames;
-                statusText.textContent = `Rendering frame ${i + 1}/${frames}...`;
+                statusText.textContent = `Frame ${i + 1}/${frames}`;
                 progressFill.style.width = `${(progress * 80)}%`;
 
-                // Apply animation based on type
                 switch (selectedAnimation) {
                     case 'detail':
                         const detailProgress = Math.sin(progress * Math.PI * 2);
-                        settings.detail = Math.floor(135 + detailProgress * 134); // sweeps through 1-269 detail range
+                        settings.detail = Math.floor(60 + detailProgress * 59);
                         break;
                     case 'brightness':
                         const brightnessProgress = Math.sin(progress * Math.PI * 2);
-                        settings.brightness = 0.5 + (brightnessProgress + 1) * 0.75; // 0.5-2.0
+                        settings.brightness = 0.5 + (brightnessProgress + 1) * 0.75;
                         break;
                     case 'contrast':
                         const contrastProgress = Math.sin(progress * Math.PI * 2);
-                        settings.contrast = 0.5 + (contrastProgress + 1) * 0.75; // 0.5-2.0
+                        settings.contrast = 0.5 + (contrastProgress + 1) * 0.75;
                         break;
                     case 'rainbow':
                         const hue = progress;
@@ -1030,32 +937,24 @@
                         break;
                     case 'combo':
                         const comboProgress = Math.sin(progress * Math.PI * 2);
-                        settings.detail = Math.floor(135 + comboProgress * 134);
+                        settings.detail = Math.floor(60 + comboProgress * 59);
                         settings.brightness = 0.8 + (comboProgress + 1) * 0.4;
                         break;
                 }
 
-                // Render ASCII
                 convertToAscii(currentSource);
-
-                // Wait for render
                 await new Promise(resolve => setTimeout(resolve, 50));
 
-                // Capture frame
                 const tempCanvas = document.createElement('canvas');
                 tempCanvas.width = 800;
                 tempCanvas.height = 600;
                 const tempCtx = tempCanvas.getContext('2d');
 
-                // Set background
                 tempCtx.fillStyle = '#000000';
                 tempCtx.fillRect(0, 0, 800, 600);
-
-                // Set text color
                 tempCtx.fillStyle = output.style.color;
                 tempCtx.font = '8px Courier New';
 
-                // Draw ASCII text
                 const lines = output.textContent.split('\n');
                 const lineHeight = 8;
                 const startY = (600 - lines.length * lineHeight) / 2;
@@ -1069,7 +968,6 @@
                 frameData.push(tempCtx.getImageData(0, 0, 800, 600));
             }
 
-            // Restore original settings
             settings = { ...originalSettings };
             output.style.color = currentColor;
             convertToAscii(currentSource);
@@ -1077,9 +975,7 @@
             statusText.textContent = 'Encoding GIF...';
             progressFill.style.width = '90%';
 
-            // Use gifenc to encode
             const gif = new window.GIFEncoder();
-
             frameData.forEach((imageData, i) => {
                 const palette = window.quantize(imageData.data, 256);
                 const index = window.applyPalette(imageData.data, palette);
@@ -1101,14 +997,10 @@
             URL.revokeObjectURL(url);
 
             setTimeout(() => {
-                exportStatus.style.display = 'none';
+                exportStatus.classList.remove('visible');
                 statusText.textContent = 'Complete!';
             }, 2000);
         });
-
-
-        // Initialize HSV sphere
-        drawHSVSphere();
     </script>
 </body>
 </html>
