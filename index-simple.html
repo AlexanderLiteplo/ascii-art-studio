@@ -170,13 +170,14 @@
             display: flex;
             gap: 12px;
             align-items: center;
+            margin-bottom: 12px;
         }
 
         .control-btn {
             background: linear-gradient(145deg, #00ff00 0%, #00cc00 100%);
             color: #000;
             border: none;
-            min-width: 60px;
+            width: 60px;
             height: 60px;
             border-radius: 16px;
             font-size: 28px;
@@ -195,12 +196,50 @@
             transform: scale(0.92);
         }
 
-        .control-hint {
-            flex: 1;
-            text-align: center;
-            color: #00aa00;
-            font-size: 12px;
-            opacity: 0.7;
+        /* Slider Control */
+        .slider-control {
+            width: 100%;
+        }
+
+        .slider {
+            width: 100%;
+            height: 40px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: linear-gradient(145deg, #1a1a1a 0%, #0f0f0f 100%);
+            border: 2px solid #00aa00;
+            border-radius: 12px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(145deg, #00ff00 0%, #00cc00 100%);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .slider::-webkit-slider-thumb:active {
+            transform: scale(1.1);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(145deg, #00ff00 0%, #00cc00 100%);
+            border-radius: 8px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .slider::-moz-range-thumb:active {
+            transform: scale(1.1);
         }
 
         /* Character Set Buttons */
@@ -485,8 +524,10 @@
                 </div>
                 <div class="button-control">
                     <button class="control-btn" id="detailMinus">-</button>
-                    <span class="control-hint">Adjust Resolution</span>
                     <button class="control-btn" id="detailPlus">+</button>
+                </div>
+                <div class="slider-control">
+                    <input type="range" class="slider" id="detailSlider" min="1" max="120" value="10">
                 </div>
             </div>
 
@@ -497,8 +538,10 @@
                 </div>
                 <div class="button-control">
                     <button class="control-btn" id="brightnessMinus">-</button>
-                    <span class="control-hint">Adjust Brightness</span>
                     <button class="control-btn" id="brightnessPlus">+</button>
+                </div>
+                <div class="slider-control">
+                    <input type="range" class="slider" id="brightnessSlider" min="5" max="20" value="10" step="1">
                 </div>
             </div>
 
@@ -509,8 +552,10 @@
                 </div>
                 <div class="button-control">
                     <button class="control-btn" id="contrastMinus">-</button>
-                    <span class="control-hint">Adjust Contrast</span>
                     <button class="control-btn" id="contrastPlus">+</button>
+                </div>
+                <div class="slider-control">
+                    <input type="range" class="slider" id="contrastSlider" min="5" max="20" value="10" step="1">
                 </div>
             </div>
 
@@ -586,7 +631,7 @@
             document.getElementById('detailValue').textContent = settings.detail;
             userInteractedWithDetail = false;
 
-            // Tick up every 62.5ms until reaching 70 or user clicks
+            // Tick up every 31.25ms until reaching 70 or user clicks
             autoDetailInterval = setInterval(() => {
                 if (userInteractedWithDetail || settings.detail >= 70) {
                     clearInterval(autoDetailInterval);
@@ -596,10 +641,11 @@
 
                 settings.detail += 1;
                 document.getElementById('detailValue').textContent = settings.detail;
+                document.getElementById('detailSlider').value = settings.detail;
                 if (currentSource && !isVideo) {
                     convertToAscii(currentSource);
                 }
-            }, 62.5);
+            }, 31.25);
 
             // Initial render at detail 1
             if (currentSource && !isVideo) {
@@ -607,8 +653,37 @@
             }
         }
 
-        // Control buttons
-        document.getElementById('detailPlus').addEventListener('click', () => {
+        // Hold-down functionality for buttons
+        let holdInterval = null;
+        let holdTimeout = null;
+
+        function setupHoldButton(btnId, action) {
+            const btn = document.getElementById(btnId);
+
+            const startHold = () => {
+                action(); // Execute immediately
+                holdTimeout = setTimeout(() => {
+                    holdInterval = setInterval(action, 50); // Repeat every 50ms
+                }, 300); // Start repeating after 300ms hold
+            };
+
+            const stopHold = () => {
+                if (holdTimeout) clearTimeout(holdTimeout);
+                if (holdInterval) clearInterval(holdInterval);
+                holdTimeout = null;
+                holdInterval = null;
+            };
+
+            btn.addEventListener('mousedown', startHold);
+            btn.addEventListener('mouseup', stopHold);
+            btn.addEventListener('mouseleave', stopHold);
+            btn.addEventListener('touchstart', startHold);
+            btn.addEventListener('touchend', stopHold);
+            btn.addEventListener('touchcancel', stopHold);
+        }
+
+        // Detail controls
+        setupHoldButton('detailPlus', () => {
             userInteractedWithDetail = true;
             if (autoDetailInterval) {
                 clearInterval(autoDetailInterval);
@@ -617,11 +692,12 @@
             if (settings.detail < 120) {
                 settings.detail += 1;
                 document.getElementById('detailValue').textContent = settings.detail;
+                document.getElementById('detailSlider').value = settings.detail;
                 if (currentSource && !isVideo) convertToAscii(currentSource);
             }
         });
 
-        document.getElementById('detailMinus').addEventListener('click', () => {
+        setupHoldButton('detailMinus', () => {
             userInteractedWithDetail = true;
             if (autoDetailInterval) {
                 clearInterval(autoDetailInterval);
@@ -630,40 +706,71 @@
             if (settings.detail > 1) {
                 settings.detail -= 1;
                 document.getElementById('detailValue').textContent = settings.detail;
+                document.getElementById('detailSlider').value = settings.detail;
                 if (currentSource && !isVideo) convertToAscii(currentSource);
             }
         });
 
-        document.getElementById('brightnessPlus').addEventListener('click', () => {
+        // Brightness controls
+        setupHoldButton('brightnessPlus', () => {
             if (settings.brightness < 2.0) {
                 settings.brightness = Math.min(2.0, settings.brightness + 0.1);
                 document.getElementById('brightnessValue').textContent = settings.brightness.toFixed(1);
+                document.getElementById('brightnessSlider').value = Math.round(settings.brightness * 10);
                 if (currentSource && !isVideo) convertToAscii(currentSource);
             }
         });
 
-        document.getElementById('brightnessMinus').addEventListener('click', () => {
+        setupHoldButton('brightnessMinus', () => {
             if (settings.brightness > 0.5) {
                 settings.brightness = Math.max(0.5, settings.brightness - 0.1);
                 document.getElementById('brightnessValue').textContent = settings.brightness.toFixed(1);
+                document.getElementById('brightnessSlider').value = Math.round(settings.brightness * 10);
                 if (currentSource && !isVideo) convertToAscii(currentSource);
             }
         });
 
-        document.getElementById('contrastPlus').addEventListener('click', () => {
+        // Contrast controls
+        setupHoldButton('contrastPlus', () => {
             if (settings.contrast < 2.0) {
                 settings.contrast = Math.min(2.0, settings.contrast + 0.1);
                 document.getElementById('contrastValue').textContent = settings.contrast.toFixed(1);
+                document.getElementById('contrastSlider').value = Math.round(settings.contrast * 10);
                 if (currentSource && !isVideo) convertToAscii(currentSource);
             }
         });
 
-        document.getElementById('contrastMinus').addEventListener('click', () => {
+        setupHoldButton('contrastMinus', () => {
             if (settings.contrast > 0.5) {
                 settings.contrast = Math.max(0.5, settings.contrast - 0.1);
                 document.getElementById('contrastValue').textContent = settings.contrast.toFixed(1);
+                document.getElementById('contrastSlider').value = Math.round(settings.contrast * 10);
                 if (currentSource && !isVideo) convertToAscii(currentSource);
             }
+        });
+
+        // Slider controls
+        document.getElementById('detailSlider').addEventListener('input', (e) => {
+            userInteractedWithDetail = true;
+            if (autoDetailInterval) {
+                clearInterval(autoDetailInterval);
+                autoDetailInterval = null;
+            }
+            settings.detail = parseInt(e.target.value);
+            document.getElementById('detailValue').textContent = settings.detail;
+            if (currentSource && !isVideo) convertToAscii(currentSource);
+        });
+
+        document.getElementById('brightnessSlider').addEventListener('input', (e) => {
+            settings.brightness = parseInt(e.target.value) / 10;
+            document.getElementById('brightnessValue').textContent = settings.brightness.toFixed(1);
+            if (currentSource && !isVideo) convertToAscii(currentSource);
+        });
+
+        document.getElementById('contrastSlider').addEventListener('input', (e) => {
+            settings.contrast = parseInt(e.target.value) / 10;
+            document.getElementById('contrastValue').textContent = settings.contrast.toFixed(1);
+            if (currentSource && !isVideo) convertToAscii(currentSource);
         });
 
         // Character set buttons
