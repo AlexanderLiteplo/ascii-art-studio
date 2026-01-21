@@ -100,6 +100,39 @@
             border: 1px solid #00aa00;
         }
 
+        .slider-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .control-btn {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:hover {
+            background: #00cc00;
+            box-shadow: 0 0 15px #00ff00;
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+
         #output {
             background: #000;
             border: 1px solid #00ff00;
@@ -408,6 +441,23 @@
             background: #00cc00;
             box-shadow: 0 0 10px #00ff00;
         }
+
+        .charset-btn {
+            background: #0a3a0a;
+            color: #00ff00;
+            border: 2px solid #00aa00;
+        }
+
+        .charset-btn:hover {
+            background: #0a5a0a;
+            border-color: #00ff00;
+        }
+
+        .charset-btn.active {
+            background: #00ff00;
+            color: #000;
+            border-color: #00ff00;
+        }
     </style>
 </head>
 <body>
@@ -428,47 +478,6 @@
             <button id="downloadBtn" style="display: none;">Download ASCII</button>
         </div>
 
-        <div class="live-text-display" id="liveTextDisplay">
-            <h3>🟢 Live ASCII Detail Sweep (0-70)</h3>
-            <div class="live-ascii-output" id="liveAsciiOutput"></div>
-            <div class="detail-indicator" id="detailIndicator">Detail: 0</div>
-        </div>
-
-        <div class="auto-gif-gallery" id="autoGifGallery">
-            <h3>🎬 Auto-Generated GIF Variations</h3>
-            <div class="gif-grid" id="gifGrid">
-                <div class="gif-item" id="gifDetail">
-                    <h4>Detail Sweep</h4>
-                    <div class="gif-status" id="statusDetail">Waiting...</div>
-                    <img class="gif-preview" id="previewDetail" style="display: none;">
-                    <button class="gif-download-btn" id="downloadDetail">Download</button>
-                </div>
-                <div class="gif-item" id="gifBrightness">
-                    <h4>Brightness Pulse</h4>
-                    <div class="gif-status" id="statusBrightness">Waiting...</div>
-                    <img class="gif-preview" id="previewBrightness" style="display: none;">
-                    <button class="gif-download-btn" id="downloadBrightness">Download</button>
-                </div>
-                <div class="gif-item" id="gifContrast">
-                    <h4>Contrast Wave</h4>
-                    <div class="gif-status" id="statusContrast">Waiting...</div>
-                    <img class="gif-preview" id="previewContrast" style="display: none;">
-                    <button class="gif-download-btn" id="downloadContrast">Download</button>
-                </div>
-                <div class="gif-item" id="gifRainbow">
-                    <h4>Rainbow Cycle</h4>
-                    <div class="gif-status" id="statusRainbow">Waiting...</div>
-                    <img class="gif-preview" id="previewRainbow" style="display: none;">
-                    <button class="gif-download-btn" id="downloadRainbow">Download</button>
-                </div>
-                <div class="gif-item" id="gifCombo">
-                    <h4>Combo Effect</h4>
-                    <div class="gif-status" id="statusCombo">Waiting...</div>
-                    <img class="gif-preview" id="previewCombo" style="display: none;">
-                    <button class="gif-download-btn" id="downloadCombo">Download</button>
-                </div>
-            </div>
-        </div>
 
         <div class="export-section">
             <h3>🎬 Export Animated GIF</h3>
@@ -526,28 +535,49 @@
                 <label>
                     Detail Level (ASCII resolution): <span class="value-display" id="detailValue">10</span>
                 </label>
-                <input type="range" id="detailSlider" min="1" max="270" value="10" step="1">
+                <div class="slider-control">
+                    <button class="control-btn" id="detailMinus">-</button>
+                    <div style="flex: 1; text-align: center; color: #00aa00; font-size: 14px;">
+                        Tap +/- to adjust
+                    </div>
+                    <button class="control-btn" id="detailPlus">+</button>
+                </div>
             </div>
 
             <div class="control-group">
                 <label>
                     Brightness: <span class="value-display" id="brightnessValue">1.0</span>
                 </label>
-                <input type="range" id="brightnessSlider" min="0.5" max="2" value="1.0" step="0.1">
+                <div class="slider-control">
+                    <button class="control-btn" id="brightnessMinus">-</button>
+                    <div style="flex: 1; text-align: center; color: #00aa00; font-size: 14px;">
+                        Tap +/- to adjust
+                    </div>
+                    <button class="control-btn" id="brightnessPlus">+</button>
+                </div>
             </div>
 
             <div class="control-group">
                 <label>
                     Contrast: <span class="value-display" id="contrastValue">1.0</span>
                 </label>
-                <input type="range" id="contrastSlider" min="0.5" max="2" value="1.0" step="0.1">
+                <div class="slider-control">
+                    <button class="control-btn" id="contrastMinus">-</button>
+                    <div style="flex: 1; text-align: center; color: #00aa00; font-size: 14px;">
+                        Tap +/- to adjust
+                    </div>
+                    <button class="control-btn" id="contrastPlus">+</button>
+                </div>
             </div>
 
             <div class="control-group">
-                <label>
-                    Character Set: <span class="value-display" id="charsetValue">Detailed</span>
-                </label>
-                <input type="range" id="charsetSlider" min="0" max="3" value="0" step="1">
+                <label style="margin-bottom: 10px;">Character Set:</label>
+                <div class="button-group" style="margin-bottom: 0;">
+                    <button class="charset-btn active" data-charset="0">Detailed</button>
+                    <button class="charset-btn" data-charset="1">Ultra Detailed</button>
+                    <button class="charset-btn" data-charset="2">Simple</button>
+                    <button class="charset-btn" data-charset="3">Blocks</button>
+                </div>
             </div>
         </div>
 
@@ -584,9 +614,6 @@
         const hsvCtx = hsvSphere.getContext('2d');
         const colorPresets = document.getElementById('colorPresets');
         const currentColorValue = document.getElementById('currentColorValue');
-        const liveTextDisplay = document.getElementById('liveTextDisplay');
-        const liveAsciiOutput = document.getElementById('liveAsciiOutput');
-        const detailIndicator = document.getElementById('detailIndicator');
 
         // ASCII character sets from darkest to brightest
         const charSets = [
@@ -610,37 +637,69 @@
         let animationId = null;
         let selectedAnimation = null;
         let currentColor = '#00ff00';
-        let generatedGifs = {}; // Store generated GIF blobs
-        let liveTextInterval = null;
-        let currentLiveDetail = 0;
-        let liveDetailIncreasing = true;
 
         // Character set names
         const charsetNames = ['Detailed', 'Ultra Detailed', 'Simple', 'Blocks'];
 
-        // Update slider displays
-        document.getElementById('detailSlider').addEventListener('input', (e) => {
-            settings.detail = parseInt(e.target.value);
-            document.getElementById('detailValue').textContent = settings.detail;
-            if (currentSource && !isVideo) convertToAscii(currentSource);
+        // +/- button controls for Detail
+        document.getElementById('detailPlus').addEventListener('click', () => {
+            if (settings.detail < 120) {
+                settings.detail += 1;
+                document.getElementById('detailValue').textContent = settings.detail;
+                if (currentSource && !isVideo) convertToAscii(currentSource);
+            }
         });
 
-        document.getElementById('brightnessSlider').addEventListener('input', (e) => {
-            settings.brightness = parseFloat(e.target.value);
-            document.getElementById('brightnessValue').textContent = settings.brightness.toFixed(1);
-            if (currentSource && !isVideo) convertToAscii(currentSource);
+        document.getElementById('detailMinus').addEventListener('click', () => {
+            if (settings.detail > 1) {
+                settings.detail -= 1;
+                document.getElementById('detailValue').textContent = settings.detail;
+                if (currentSource && !isVideo) convertToAscii(currentSource);
+            }
         });
 
-        document.getElementById('contrastSlider').addEventListener('input', (e) => {
-            settings.contrast = parseFloat(e.target.value);
-            document.getElementById('contrastValue').textContent = settings.contrast.toFixed(1);
-            if (currentSource && !isVideo) convertToAscii(currentSource);
+        // +/- button controls for Brightness
+        document.getElementById('brightnessPlus').addEventListener('click', () => {
+            if (settings.brightness < 2.0) {
+                settings.brightness = Math.min(2.0, settings.brightness + 0.1);
+                document.getElementById('brightnessValue').textContent = settings.brightness.toFixed(1);
+                if (currentSource && !isVideo) convertToAscii(currentSource);
+            }
         });
 
-        document.getElementById('charsetSlider').addEventListener('input', (e) => {
-            currentCharSet = parseInt(e.target.value);
-            document.getElementById('charsetValue').textContent = charsetNames[currentCharSet];
-            if (currentSource && !isVideo) convertToAscii(currentSource);
+        document.getElementById('brightnessMinus').addEventListener('click', () => {
+            if (settings.brightness > 0.5) {
+                settings.brightness = Math.max(0.5, settings.brightness - 0.1);
+                document.getElementById('brightnessValue').textContent = settings.brightness.toFixed(1);
+                if (currentSource && !isVideo) convertToAscii(currentSource);
+            }
+        });
+
+        // +/- button controls for Contrast
+        document.getElementById('contrastPlus').addEventListener('click', () => {
+            if (settings.contrast < 2.0) {
+                settings.contrast = Math.min(2.0, settings.contrast + 0.1);
+                document.getElementById('contrastValue').textContent = settings.contrast.toFixed(1);
+                if (currentSource && !isVideo) convertToAscii(currentSource);
+            }
+        });
+
+        document.getElementById('contrastMinus').addEventListener('click', () => {
+            if (settings.contrast > 0.5) {
+                settings.contrast = Math.max(0.5, settings.contrast - 0.1);
+                document.getElementById('contrastValue').textContent = settings.contrast.toFixed(1);
+                if (currentSource && !isVideo) convertToAscii(currentSource);
+            }
+        });
+
+        // Character set button handling
+        document.querySelectorAll('.charset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.charset-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentCharSet = parseInt(btn.dataset.charset);
+                if (currentSource && !isVideo) convertToAscii(currentSource);
+            });
         });
 
         // Upload area interactions
@@ -706,14 +765,10 @@
                 const img = new Image();
                 img.onload = () => {
                     currentSource = img;
+
+                    // Just convert with base settings - no animations or live display on load
                     convertToAscii(img);
                     info.textContent = `Converted: ${file.name}`;
-
-                    // Start live text display
-                    startLiveTextDisplay();
-
-                    // Auto-generate all GIF variations in parallel
-                    autoGenerateAllGifs();
                 };
                 img.src = URL.createObjectURL(file);
             } else if (fileType === 'video') {
@@ -1051,243 +1106,6 @@
             }, 2000);
         });
 
-        // Live text display with detail sweep
-        function startLiveTextDisplay() {
-            if (!currentSource) return;
-
-            // Show the display
-            liveTextDisplay.style.display = 'block';
-
-            // Clear any existing interval
-            if (liveTextInterval) {
-                clearInterval(liveTextInterval);
-            }
-
-            // Reset detail
-            currentLiveDetail = 0;
-            liveDetailIncreasing = true;
-
-            // Update every 100ms
-            liveTextInterval = setInterval(() => {
-                if (!currentSource) {
-                    clearInterval(liveTextInterval);
-                    return;
-                }
-
-                // Save current settings
-                const savedDetail = settings.detail;
-
-                // Set detail for live display
-                settings.detail = currentLiveDetail;
-
-                // Generate ASCII with current detail
-                const aspectRatio = currentSource.videoHeight ?
-                    currentSource.videoHeight / currentSource.videoWidth :
-                    currentSource.height / currentSource.width;
-                const width = settings.detail * 10;
-                const height = Math.floor(width * aspectRatio * 0.5);
-
-                canvas.width = width;
-                canvas.height = height;
-                ctx.drawImage(currentSource, 0, 0, width, height);
-
-                const imageData = ctx.getImageData(0, 0, width, height);
-                const pixels = imageData.data;
-
-                let ascii = '';
-                const chars = charSets[currentCharSet];
-
-                for (let y = 0; y < height; y++) {
-                    for (let x = 0; x < width; x++) {
-                        const i = (y * width + x) * 4;
-                        let r = pixels[i];
-                        let g = pixels[i + 1];
-                        let b = pixels[i + 2];
-
-                        r = Math.min(255, r * settings.brightness);
-                        g = Math.min(255, g * settings.brightness);
-                        b = Math.min(255, b * settings.brightness);
-
-                        r = Math.min(255, Math.max(0, ((r / 255 - 0.5) * settings.contrast + 0.5) * 255));
-                        g = Math.min(255, Math.max(0, ((g / 255 - 0.5) * settings.contrast + 0.5) * 255));
-                        b = Math.min(255, Math.max(0, ((b / 255 - 0.5) * settings.contrast + 0.5) * 255));
-
-                        const brightness = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-                        const charIndex = Math.floor(brightness * (chars.length - 1));
-                        ascii += chars[charIndex];
-                    }
-                    ascii += '\n';
-                }
-
-                // Display the ASCII
-                liveAsciiOutput.textContent = ascii;
-                detailIndicator.textContent = `Detail: ${currentLiveDetail}`;
-
-                // Update detail for next frame
-                if (liveDetailIncreasing) {
-                    currentLiveDetail++;
-                    if (currentLiveDetail >= 70) {
-                        liveDetailIncreasing = false;
-                    }
-                } else {
-                    currentLiveDetail--;
-                    if (currentLiveDetail <= 0) {
-                        liveDetailIncreasing = true;
-                    }
-                }
-
-                // Restore settings
-                settings.detail = savedDetail;
-            }, 100);
-        }
-
-        // Auto-generate all GIF variations in parallel
-        async function autoGenerateAllGifs() {
-            if (!currentSource) return;
-
-            // Show the gallery
-            document.getElementById('autoGifGallery').style.display = 'block';
-
-            // Reset all items
-            const animations = ['detail', 'brightness', 'contrast', 'rainbow', 'combo'];
-            animations.forEach(anim => {
-                const item = document.getElementById(`gif${anim.charAt(0).toUpperCase() + anim.slice(1)}`);
-                item.className = 'gif-item generating';
-                document.getElementById(`status${anim.charAt(0).toUpperCase() + anim.slice(1)}`).textContent = 'Generating...';
-                document.getElementById(`preview${anim.charAt(0).toUpperCase() + anim.slice(1)}`).style.display = 'none';
-                document.getElementById(`download${anim.charAt(0).toUpperCase() + anim.slice(1)}`).style.display = 'none';
-            });
-
-            // Generate all GIFs in parallel
-            const gifPromises = animations.map(animType => generateSingleGif(animType));
-            await Promise.all(gifPromises);
-
-            info.textContent = 'All GIF variations generated! 🎉';
-        }
-
-        async function generateSingleGif(animationType) {
-            const animNameCap = animationType.charAt(0).toUpperCase() + animationType.slice(1);
-            const statusEl = document.getElementById(`status${animNameCap}`);
-            const previewEl = document.getElementById(`preview${animNameCap}`);
-            const downloadBtn = document.getElementById(`download${animNameCap}`);
-            const itemEl = document.getElementById(`gif${animNameCap}`);
-
-            try {
-                const frames = 30;
-                const originalSettings = { ...settings };
-                const originalColor = output.style.color;
-                const frameData = [];
-
-                for (let i = 0; i < frames; i++) {
-                    const progress = i / frames;
-                    statusEl.textContent = `Frame ${i + 1}/${frames}`;
-
-                    // Apply animation based on type
-                    switch (animationType) {
-                        case 'detail':
-                            const detailProgress = Math.sin(progress * Math.PI * 2);
-                            settings.detail = Math.floor(135 + detailProgress * 134);
-                            break;
-                        case 'brightness':
-                            const brightnessProgress = Math.sin(progress * Math.PI * 2);
-                            settings.brightness = 0.5 + (brightnessProgress + 1) * 0.75;
-                            break;
-                        case 'contrast':
-                            const contrastProgress = Math.sin(progress * Math.PI * 2);
-                            settings.contrast = 0.5 + (contrastProgress + 1) * 0.75;
-                            break;
-                        case 'rainbow':
-                            const hue = progress;
-                            const rgb = hsvToRgb(hue, 1.0, 1.0);
-                            output.style.color = rgbToHex(rgb.r, rgb.g, rgb.b);
-                            break;
-                        case 'combo':
-                            const comboProgress = Math.sin(progress * Math.PI * 2);
-                            settings.detail = Math.floor(135 + comboProgress * 134);
-                            settings.brightness = 0.8 + (comboProgress + 1) * 0.4;
-                            break;
-                    }
-
-                    // Render ASCII
-                    convertToAscii(currentSource);
-
-                    // Wait for render
-                    await new Promise(resolve => setTimeout(resolve, 30));
-
-                    // Capture frame
-                    const tempCanvas = document.createElement('canvas');
-                    tempCanvas.width = 800;
-                    tempCanvas.height = 600;
-                    const tempCtx = tempCanvas.getContext('2d');
-
-                    // Set background
-                    tempCtx.fillStyle = '#000000';
-                    tempCtx.fillRect(0, 0, 800, 600);
-
-                    // Set text color
-                    tempCtx.fillStyle = output.style.color;
-                    tempCtx.font = '8px Courier New';
-
-                    // Draw ASCII text
-                    const lines = output.textContent.split('\n');
-                    const lineHeight = 8;
-                    const startY = (600 - lines.length * lineHeight) / 2;
-
-                    lines.forEach((line, idx) => {
-                        const textWidth = tempCtx.measureText(line).width;
-                        const startX = (800 - textWidth) / 2;
-                        tempCtx.fillText(line, startX, startY + idx * lineHeight);
-                    });
-
-                    frameData.push(tempCtx.getImageData(0, 0, 800, 600));
-                }
-
-                // Restore original settings
-                settings = { ...originalSettings };
-                output.style.color = currentColor;
-                convertToAscii(currentSource);
-
-                statusEl.textContent = 'Encoding...';
-
-                // Use gifenc to encode
-                const gif = new window.GIFEncoder();
-
-                frameData.forEach((imageData) => {
-                    const palette = window.quantize(imageData.data, 256);
-                    const index = window.applyPalette(imageData.data, palette);
-                    gif.writeFrame(index, 800, 600, { palette, delay: 10 });
-                });
-                gif.finish();
-
-                const buffer = gif.bytes();
-                const blob = new Blob([buffer], { type: 'image/gif' });
-
-                // Store the blob
-                generatedGifs[animationType] = blob;
-
-                // Show preview
-                const url = URL.createObjectURL(blob);
-                previewEl.src = url;
-                previewEl.style.display = 'block';
-
-                // Update status
-                statusEl.textContent = 'Complete! ✓';
-                itemEl.className = 'gif-item complete';
-
-                // Show download button
-                downloadBtn.style.display = 'inline-block';
-                downloadBtn.onclick = () => {
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `ascii-${animationType}-${Date.now()}.gif`;
-                    a.click();
-                };
-            } catch (error) {
-                statusEl.textContent = 'Error!';
-                itemEl.className = 'gif-item';
-                console.error(`Error generating ${animationType} GIF:`, error);
-            }
-        }
 
         // Initialize HSV sphere
         drawHSVSphere();
