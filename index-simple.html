@@ -532,44 +532,6 @@
             <div class="color-grid" id="colorGrid"></div>
         </div>
 
-        <div class="control-card">
-            <h3>EXPORT ANIMATED GIF</h3>
-
-            <div class="control-label">
-                <span>Animation Type</span>
-            </div>
-            <div class="animation-grid">
-                <div class="animation-option" data-animation="detail">
-                    <h4>Detail Sweep</h4>
-                    <p>Animates detail low to high</p>
-                </div>
-                <div class="animation-option" data-animation="brightness">
-                    <h4>Brightness</h4>
-                    <p>Pulses brightness</p>
-                </div>
-                <div class="animation-option" data-animation="contrast">
-                    <h4>Contrast</h4>
-                    <p>Waves contrast</p>
-                </div>
-                <div class="animation-option" data-animation="rainbow">
-                    <h4>Rainbow</h4>
-                    <p>Cycles colors</p>
-                </div>
-                <div class="animation-option" data-animation="combo">
-                    <h4>Combo</h4>
-                    <p>Detail + brightness</p>
-                </div>
-            </div>
-
-            <button class="action-btn secondary visible" id="exportGifBtn" style="margin-top: 20px;">Export GIF</button>
-
-            <div class="export-status" id="exportStatus">
-                <div class="status-text" id="statusText">Preparing export...</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-            </div>
-        </div>
 
         <p class="info-text" id="infoText">Ready to convert!</p>
 
@@ -577,12 +539,6 @@
         <video id="videoPreview" loop muted></video>
     </div>
 
-    <script type="module">
-        import { GIFEncoder, quantize, applyPalette } from 'https://unpkg.com/gifenc@1.0.3/dist/gifenc.esm.js';
-        window.GIFEncoder = GIFEncoder;
-        window.quantize = quantize;
-        window.applyPalette = applyPalette;
-    </script>
     <script>
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
@@ -594,10 +550,6 @@
         const videoPreview = document.getElementById('videoPreview');
         const pauseBtn = document.getElementById('pauseBtn');
         const downloadBtn = document.getElementById('downloadBtn');
-        const exportGifBtn = document.getElementById('exportGifBtn');
-        const exportStatus = document.getElementById('exportStatus');
-        const statusText = document.getElementById('statusText');
-        const progressFill = document.getElementById('progressFill');
         const colorGrid = document.getElementById('colorGrid');
 
         const charSets = [
@@ -618,7 +570,6 @@
         let isPaused = false;
         let currentSource = null;
         let animationId = null;
-        let selectedAnimation = null;
         let currentColor = '#00ff00';
         let autoDetailInterval = null;
         let userInteractedWithDetail = false;
@@ -882,154 +833,6 @@
                 div.classList.add('selected');
             });
             colorGrid.appendChild(div);
-        });
-
-        // Animation selection
-        document.querySelectorAll('.animation-option').forEach(option => {
-            option.addEventListener('click', () => {
-                document.querySelectorAll('.animation-option').forEach(o => o.classList.remove('selected'));
-                option.classList.add('selected');
-                selectedAnimation = option.dataset.animation;
-            });
-        });
-
-        // HSV conversion
-        function hsvToRgb(h, s, v) {
-            let r, g, b;
-            const i = Math.floor(h * 6);
-            const f = h * 6 - i;
-            const p = v * (1 - s);
-            const q = v * (1 - f * s);
-            const t = v * (1 - (1 - f) * s);
-            switch (i % 6) {
-                case 0: r = v; g = t; b = p; break;
-                case 1: r = q; g = v; b = p; break;
-                case 2: r = p; g = v; b = t; break;
-                case 3: r = p; g = q; b = v; break;
-                case 4: r = t; g = p; b = v; break;
-                case 5: r = v; g = p; b = q; break;
-            }
-            return {
-                r: Math.round(r * 255),
-                g: Math.round(g * 255),
-                b: Math.round(b * 255)
-            };
-        }
-
-        function rgbToHex(r, g, b) {
-            return '#' + [r, g, b].map(x => {
-                const hex = x.toString(16);
-                return hex.length === 1 ? '0' + hex : hex;
-            }).join('');
-        }
-
-        // Export GIF
-        exportGifBtn.addEventListener('click', async () => {
-            if (!currentSource) {
-                alert('Please upload an image first!');
-                return;
-            }
-            if (!selectedAnimation) {
-                alert('Please select an animation type!');
-                return;
-            }
-
-            exportStatus.classList.add('visible');
-            statusText.textContent = 'Initializing...';
-            progressFill.style.width = '0%';
-
-            const frames = 30;
-            const originalSettings = { ...settings };
-            const frameData = [];
-
-            for (let i = 0; i < frames; i++) {
-                const progress = i / frames;
-                statusText.textContent = `Frame ${i + 1}/${frames}`;
-                progressFill.style.width = `${(progress * 80)}%`;
-
-                switch (selectedAnimation) {
-                    case 'detail':
-                        const detailProgress = Math.sin(progress * Math.PI * 2);
-                        settings.detail = Math.floor(60 + detailProgress * 59);
-                        break;
-                    case 'brightness':
-                        const brightnessProgress = Math.sin(progress * Math.PI * 2);
-                        settings.brightness = 0.5 + (brightnessProgress + 1) * 0.75;
-                        break;
-                    case 'contrast':
-                        const contrastProgress = Math.sin(progress * Math.PI * 2);
-                        settings.contrast = 0.5 + (contrastProgress + 1) * 0.75;
-                        break;
-                    case 'rainbow':
-                        const hue = progress;
-                        const rgb = hsvToRgb(hue, 1.0, 1.0);
-                        output.style.color = rgbToHex(rgb.r, rgb.g, rgb.b);
-                        break;
-                    case 'combo':
-                        const comboProgress = Math.sin(progress * Math.PI * 2);
-                        settings.detail = Math.floor(60 + comboProgress * 59);
-                        settings.brightness = 0.8 + (comboProgress + 1) * 0.4;
-                        break;
-                }
-
-                convertToAscii(currentSource);
-                await new Promise(resolve => setTimeout(resolve, 50));
-
-                const tempCanvas = document.createElement('canvas');
-                tempCanvas.width = 800;
-                tempCanvas.height = 600;
-                const tempCtx = tempCanvas.getContext('2d');
-
-                tempCtx.fillStyle = '#000000';
-                tempCtx.fillRect(0, 0, 800, 600);
-                tempCtx.fillStyle = output.style.color;
-                tempCtx.font = '8px Courier New';
-
-                const lines = output.textContent.split('\n');
-                const lineHeight = 8;
-                const startY = (600 - lines.length * lineHeight) / 2;
-
-                lines.forEach((line, idx) => {
-                    const textWidth = tempCtx.measureText(line).width;
-                    const startX = (800 - textWidth) / 2;
-                    tempCtx.fillText(line, startX, startY + idx * lineHeight);
-                });
-
-                frameData.push(tempCtx.getImageData(0, 0, 800, 600));
-            }
-
-            settings = { ...originalSettings };
-            output.style.color = currentColor;
-            convertToAscii(currentSource);
-
-            statusText.textContent = 'Encoding GIF...';
-            progressFill.style.width = '90%';
-
-            const gif = new window.GIFEncoder();
-            frameData.forEach((imageData, i) => {
-                const palette = window.quantize(imageData.data, 256);
-                const index = window.applyPalette(imageData.data, palette);
-                gif.writeFrame(index, 800, 600, { palette, delay: 10 });
-                progressFill.style.width = `${90 + (i / frameData.length) * 10}%`;
-            });
-            gif.finish();
-
-            statusText.textContent = 'Download starting...';
-            progressFill.style.width = '100%';
-
-            const buffer = gif.bytes();
-            const blob = new Blob([buffer], { type: 'image/gif' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `ascii-${selectedAnimation}-${Date.now()}.gif`;
-            a.click();
-            URL.revokeObjectURL(url);
-
-            setTimeout(() => {
-                exportStatus.classList.remove('visible');
-                statusText.textContent = 'Complete!';
-            }, 2000);
         });
 
         // Export JSON sequence functionality
