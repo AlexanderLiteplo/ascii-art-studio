@@ -635,7 +635,7 @@
             document.getElementById('detailValue').textContent = settings.detail;
             userInteractedWithDetail = false;
 
-            // Tick up every 250ms until reaching 70 or user clicks
+            // Tick up every 125ms until reaching 70 or user clicks
             autoDetailInterval = setInterval(() => {
                 if (userInteractedWithDetail || settings.detail >= 70) {
                     clearInterval(autoDetailInterval);
@@ -648,7 +648,7 @@
                 if (currentSource && !isVideo) {
                     convertToAscii(currentSource);
                 }
-            }, 250);
+            }, 125);
 
             // Initial render at detail 1
             if (currentSource && !isVideo) {
