@@ -620,9 +620,49 @@
         let animationId = null;
         let selectedAnimation = null;
         let currentColor = '#00ff00';
+        let autoDetailInterval = null;
+        let userInteractedWithDetail = false;
+
+        // Auto detail sweep function
+        function startAutoDetailSweep() {
+            // Stop any existing interval
+            if (autoDetailInterval) {
+                clearInterval(autoDetailInterval);
+            }
+
+            // Start at detail 1
+            settings.detail = 1;
+            document.getElementById('detailValue').textContent = settings.detail;
+            userInteractedWithDetail = false;
+
+            // Tick up every 250ms until reaching 70 or user clicks
+            autoDetailInterval = setInterval(() => {
+                if (userInteractedWithDetail || settings.detail >= 70) {
+                    clearInterval(autoDetailInterval);
+                    autoDetailInterval = null;
+                    return;
+                }
+
+                settings.detail += 1;
+                document.getElementById('detailValue').textContent = settings.detail;
+                if (currentSource && !isVideo) {
+                    convertToAscii(currentSource);
+                }
+            }, 250);
+
+            // Initial render at detail 1
+            if (currentSource && !isVideo) {
+                convertToAscii(currentSource);
+            }
+        }
 
         // Control buttons
         document.getElementById('detailPlus').addEventListener('click', () => {
+            userInteractedWithDetail = true;
+            if (autoDetailInterval) {
+                clearInterval(autoDetailInterval);
+                autoDetailInterval = null;
+            }
             if (settings.detail < 120) {
                 settings.detail += 1;
                 document.getElementById('detailValue').textContent = settings.detail;
@@ -631,6 +671,11 @@
         });
 
         document.getElementById('detailMinus').addEventListener('click', () => {
+            userInteractedWithDetail = true;
+            if (autoDetailInterval) {
+                clearInterval(autoDetailInterval);
+                autoDetailInterval = null;
+            }
             if (settings.detail > 1) {
                 settings.detail -= 1;
                 document.getElementById('detailValue').textContent = settings.detail;
@@ -736,7 +781,7 @@
                 const img = new Image();
                 img.onload = () => {
                     currentSource = img;
-                    convertToAscii(img);
+                    startAutoDetailSweep();
                     infoText.textContent = `Converted: ${file.name}`;
                 };
                 img.src = URL.createObjectURL(file);
