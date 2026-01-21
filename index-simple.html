@@ -502,7 +502,12 @@
             <p class="upload-subtext">JPG, PNG, GIF, MP4, WEBM</p>
         </div>
 
+        <div class="action-buttons" style="display: flex; margin-top: 0;">
+            <button class="action-btn visible" id="cameraBtn" style="background: linear-gradient(145deg, #ff6600 0%, #cc5500 100%);">📷 Take Photo</button>
+        </div>
+
         <input type="file" id="fileInput" accept="image/*,video/*">
+        <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;">
 
         <div class="output-card" id="outputCard">
             <div id="output"></div>
@@ -596,6 +601,8 @@
         const pauseBtn = document.getElementById('pauseBtn');
         const downloadBtn = document.getElementById('downloadBtn');
         const colorGrid = document.getElementById('colorGrid');
+        const cameraBtn = document.getElementById('cameraBtn');
+        const cameraInput = document.getElementById('cameraInput');
 
         const charSets = [
             " .:-=+*#%@",
@@ -798,6 +805,18 @@
         });
 
         fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        // Camera button click handler
+        cameraBtn.addEventListener('click', () => {
+            cameraInput.click();
+        });
+
+        // Camera input change handler
+        cameraInput.addEventListener('change', (e) => {
             if (e.target.files.length > 0) {
                 handleFile(e.target.files[0]);
             }
